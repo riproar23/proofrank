@@ -1,0 +1,331 @@
+{
+ "n": 100000,
+ "field_missing": {},
+ "top_titles": [
+  [
+   "Business Analyst",
+   5833
+  ],
+  [
+   "HR Manager",
+   5830
+  ],
+  [
+   "Mechanical Engineer",
+   5791
+  ],
+  [
+   "Accountant",
+   5764
+  ],
+  [
+   "Project Manager",
+   5754
+  ],
+  [
+   "Customer Support",
+   5750
+  ],
+  [
+   "Operations Manager",
+   5744
+  ],
+  [
+   "Content Writer",
+   5727
+  ],
+  [
+   "Sales Executive",
+   5713
+  ],
+  [
+   "Civil Engineer",
+   5702
+  ],
+  [
+   "Graphic Designer",
+   5689
+  ],
+  [
+   "Marketing Manager",
+   5524
+  ],
+  [
+   "Software Engineer",
+   3450
+  ],
+  [
+   "Full Stack Developer",
+   2873
+  ],
+  [
+   "Cloud Engineer",
+   2836
+  ],
+  [
+   "Java Developer",
+   2809
+  ],
+  [
+   ".NET Developer",
+   2788
+  ],
+  [
+   "DevOps Engineer",
+   2787
+  ],
+  [
+   "Mobile Developer",
+   2757
+  ],
+  [
+   "Frontend Engineer",
+   2738
+  ],
+  [
+   "QA Engineer",
+   2682
+  ],
+  [
+   "Analytics Engineer",
+   764
+  ],
+  [
+   "Data Engineer",
+   744
+  ],
+  [
+   "Data Analyst",
+   728
+  ],
+  [
+   "Backend Engineer",
+   704
+  ],
+  [
+   "Senior Data Engineer",
+   687
+  ],
+  [
+   "Senior Software Engineer",
+   653
+  ],
+  [
+   "ML Engineer",
+   167
+  ],
+  [
+   "AI Research Engineer",
+   153
+  ],
+  [
+   "Data Scientist",
+   145
+  ],
+  [
+   "Senior Software Engineer (ML)",
+   142
+  ],
+  [
+   "Computer Vision Engineer",
+   132
+  ],
+  [
+   "Junior ML Engineer",
+   131
+  ],
+  [
+   "AI Specialist",
+   130
+  ],
+  [
+   "Recommendation Systems Engineer",
+   26
+  ]
+ ],
+ "distinct_titles": 47,
+ "top_countries": [
+  [
+   "India",
+   75113
+  ],
+  [
+   "USA",
+   9978
+  ],
+  [
+   "Australia",
+   2579
+  ],
+  [
+   "Canada",
+   2506
+  ],
+  [
+   "UK",
+   2472
+  ],
+  [
+   "Germany",
+   2469
+  ],
+  [
+   "Singapore",
+   2453
+  ],
+  [
+   "UAE",
+   2430
+  ]
+ ],
+ "india_count": 75113,
+ "target_city_locs": {
+  "Toronto": 2506,
+  "Chennai, Tamil Nadu": 4164,
+  "Austin": 2531,
+  "Sydney": 2579,
+  "Gurgaon, Haryana": 4037,
+  "Noida, Uttar Pradesh": 4283,
+  "New York": 2518,
+  "London": 2472,
+  "Hyderabad, Telangana": 4283,
+  "Chandigarh, Chandigarh": 4128,
+  "Dubai": 2430,
+  "Trivandrum, Kerala": 4151,
+  "Bangalore, Karnataka": 4238,
+  "Bhubaneswar, Odisha": 4321,
+  "Ahmedabad, Gujarat": 4143,
+  "Vizag, Andhra Pradesh": 4093,
+  "Kochi, Kerala": 4073,
+  "Kolkata, West Bengal": 4230,
+  "Pune, Maharashtra": 4186,
+  "Coimbatore, Tamil Nadu": 4113,
+  "Delhi, Delhi": 4161,
+  "Berlin": 2469,
+  "Indore, Madhya Pradesh": 4198,
+  "Mumbai, Maharashtra": 4043,
+  "Singapore": 2453,
+  "San Francisco": 2536,
+  "Seattle": 2393,
+  "Jaipur, Rajasthan": 4268
+ },
+ "yoe": {
+  "min": 1.0,
+  "max": 16.9,
+  "mean": 7.17,
+  "pct": {
+   "10": 2.2,
+   "25": 3.9,
+   "50": 6.8,
+   "75": 9.9,
+   "90": 13.0
+  },
+  "in_5_9": 34375
+ },
+ "nskill": {
+  "mean": 9.6,
+  "pct": {
+   "10": 6,
+   "50": 9,
+   "90": 14
+  },
+  "max": 23
+ },
+ "behavioral": {
+  "github_neg1": 64637,
+  "offer_acc_neg1": 59554,
+  "assess_empty": 75756,
+  "open_to_work": 35339,
+  "willing_relocate": 28804,
+  "verified_email": 72003,
+  "verified_phone": 61789,
+  "linkedin": 35999,
+  "resp_rate_pct": {
+   "10": 0.14,
+   "25": 0.25,
+   "50": 0.44,
+   "75": 0.62,
+   "90": 0.73
+  },
+  "notice_pct": {
+   "10": 30,
+   "50": 90,
+   "90": 150
+  },
+  "completeness_pct": {
+   "10": 32.8,
+   "50": 56.8,
+   "90": 80.4
+  },
+  "last_active_days_pct": {
+   "10": 53,
+   "50": 138,
+   "90": 239,
+   "95": 256
+  }
+ },
+ "desc_templating": {
+  "unique_descs": 44,
+  "desc_appearing_multi": 44,
+  "rows_in_dup_descs": 300171,
+  "top_desc_counts": [
+   25515,
+   25290,
+   25237,
+   25207,
+   25164
+  ]
+ },
+ "nontech_ai_stuffer_ge4": 4545,
+ "honeypot_firstpass": {
+  "by_rule": {
+   "H2_skill_dur_gt_career": 9231,
+   "H1_expert_skill_0mo": 21,
+   "H3_date_duration_mismatch": 33,
+   "H6_career_sum_gt_yoe": 22
+  },
+  "union_count": 9284,
+  "examples": {
+   "H2_skill_dur_gt_career": [
+    "CAND_0000003",
+    "CAND_0000011",
+    "CAND_0000012",
+    "CAND_0000013",
+    "CAND_0000022",
+    "CAND_0000028",
+    "CAND_0000031",
+    "CAND_0000052"
+   ],
+   "H1_expert_skill_0mo": [
+    "CAND_0003582",
+    "CAND_0016000",
+    "CAND_0033817",
+    "CAND_0033972",
+    "CAND_0036839",
+    "CAND_0042245",
+    "CAND_0046649",
+    "CAND_0046689"
+   ],
+   "H3_date_duration_mismatch": [
+    "CAND_0005291",
+    "CAND_0007353",
+    "CAND_0007413",
+    "CAND_0008960",
+    "CAND_0010294",
+    "CAND_0018515",
+    "CAND_0024752",
+    "CAND_0025579"
+   ],
+   "H6_career_sum_gt_yoe": [
+    "CAND_0007353",
+    "CAND_0008960",
+    "CAND_0010294",
+    "CAND_0018515",
+    "CAND_0019480",
+    "CAND_0035104",
+    "CAND_0037000",
+    "CAND_0037539"
+   ]
+  }
+ }
+}

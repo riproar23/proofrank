@@ -1,0 +1,372 @@
+{
+ "distinct_desc": 44,
+ "sharp_union": 113,
+ "rules": {
+  "H2b_expertskill_gt_career": 59,
+  "H1_expert0mo": 21,
+  "H3_datemismatch": 33,
+  "H6_sum_gt_yoe": 22
+ },
+ "top_desc": [
+  [
+   25515,
+   "Enterprise sales of cloud software solutions into the mid-market segment. Carried a $1.8M ARR quota and consistently delivered against it ac"
+  ],
+  [
+   25290,
+   "Customer support team lead at a SaaS product. Managed a team of 8 support agents handling tier-1 and tier-2 tickets; owned the escalation pr"
+  ],
+  [
+   25237,
+   "Marketing leadership role at a B2B SaaS company. Owned the demand-generation function \u2014 content marketing, paid acquisition, SEO, email nurt"
+  ],
+  [
+   25207,
+   "Business analyst at a consulting firm, working primarily with retail and CPG clients. Conducted business diagnostics, process re-engineering"
+  ],
+  [
+   25164,
+   "Brand design and creative direction at a consumer-products company. Owned brand identity (logo, visual system, typography), packaging design"
+  ],
+  [
+   25104,
+   "Mechanical engineering design role at a hardware-product company. Led the design of two product subsystems through full lifecycle: concept, "
+  ],
+  [
+   25078,
+   "Senior accounting role at a mid-sized company \u2014 month-end close, financial reporting, statutory compliance (GAAP / Ind-AS), and tax filings."
+  ],
+  [
+   25071,
+   "Content writing and SEO strategy for a tech-focused publication. Wrote longform articles on developer tools, cloud platforms, and AI/ML topi"
+  ]
+ ],
+ "hp_detail": [
+  [
+   "CAND_0001610",
+   "Machine Learning Engineer",
+   3.0,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0003582",
+   "Mobile Developer",
+   8.2,
+   [
+    "H1_expert0mo"
+   ]
+  ],
+  [
+   "CAND_0003977",
+   "Recommendation Systems Engineer",
+   4.6,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0005260",
+   "Senior NLP Engineer",
+   5.2,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0005291",
+   "Business Analyst",
+   12.8,
+   [
+    "H3_datemismatch"
+   ]
+  ],
+  [
+   "CAND_0006418",
+   "Machine Learning Engineer",
+   5.7,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0007353",
+   "Frontend Engineer",
+   9.9,
+   [
+    "H3_datemismatch",
+    "H6_sum_gt_yoe"
+   ]
+  ],
+  [
+   "CAND_0007413",
+   "Business Analyst",
+   13.3,
+   [
+    "H3_datemismatch"
+   ]
+  ],
+  [
+   "CAND_0008960",
+   "Graphic Designer",
+   10.3,
+   [
+    "H3_datemismatch",
+    "H6_sum_gt_yoe"
+   ]
+  ],
+  [
+   "CAND_0009024",
+   "Search Engineer",
+   5.2,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0009837",
+   "Senior Data Scientist",
+   4.3,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0010294",
+   ".NET Developer",
+   8.0,
+   [
+    "H3_datemismatch",
+    "H6_sum_gt_yoe"
+   ]
+  ],
+  [
+   "CAND_0011162",
+   "Recommendation Systems Engineer",
+   5.8,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0012957",
+   "Search Engineer",
+   4.9,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0013613",
+   "Machine Learning Engineer",
+   4.7,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0015578",
+   "AI Engineer",
+   5.4,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0016000",
+   "Full Stack Developer",
+   2.0,
+   [
+    "H1_expert0mo"
+   ]
+  ],
+  [
+   "CAND_0018515",
+   "Marketing Manager",
+   8.5,
+   [
+    "H3_datemismatch",
+    "H6_sum_gt_yoe"
+   ]
+  ],
+  [
+   "CAND_0019480",
+   "NLP Engineer",
+   2.8,
+   [
+    "H6_sum_gt_yoe",
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0020708",
+   "Search Engineer",
+   4.2,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0020877",
+   "Applied ML Engineer",
+   5.1,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0022812",
+   "Applied ML Engineer",
+   4.5,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0024466",
+   "Search Engineer",
+   5.2,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0024752",
+   "Civil Engineer",
+   14.9,
+   [
+    "H3_datemismatch"
+   ]
+  ],
+  [
+   "CAND_0025579",
+   "HR Manager",
+   12.9,
+   [
+    "H3_datemismatch"
+   ]
+  ],
+  [
+   "CAND_0029367",
+   "Senior Data Scientist",
+   5.7,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0030031",
+   "AI Engineer",
+   5.7,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0030348",
+   "Machine Learning Engineer",
+   4.5,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0030468",
+   "Senior Applied Scientist",
+   5.4,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0030827",
+   "Senior Data Scientist",
+   5.4,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0032515",
+   "Machine Learning Engineer",
+   5.1,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0032807",
+   "Machine Learning Engineer",
+   4.2,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0033131",
+   "Operations Manager",
+   12.7,
+   [
+    "H3_datemismatch"
+   ]
+  ],
+  [
+   "CAND_0033817",
+   "HR Manager",
+   13.3,
+   [
+    "H1_expert0mo"
+   ]
+  ],
+  [
+   "CAND_0033972",
+   "QA Engineer",
+   6.0,
+   [
+    "H1_expert0mo"
+   ]
+  ],
+  [
+   "CAND_0035104",
+   "Software Engineer",
+   5.5,
+   [
+    "H3_datemismatch",
+    "H6_sum_gt_yoe"
+   ]
+  ],
+  [
+   "CAND_0036299",
+   "Mobile Developer",
+   12.2,
+   [
+    "H3_datemismatch"
+   ]
+  ],
+  [
+   "CAND_0036437",
+   "Search Engineer",
+   4.8,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ],
+  [
+   "CAND_0036839",
+   "Operations Manager",
+   8.1,
+   [
+    "H1_expert0mo"
+   ]
+  ],
+  [
+   "CAND_0036863",
+   "Senior Data Scientist",
+   4.3,
+   [
+    "H2b_expertskill_gt_career"
+   ]
+  ]
+ ]
+}

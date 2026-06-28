@@ -1,0 +1,189 @@
+# jd_rubric.yaml — Senior AI Engineer (Founding Team), Redrob AI
+# Built from the ACTUAL released job_description.md. Every entry traces to a JD line.
+# Used by the ranker to assign evidence tiers and within-tier scores. This is a rubric,
+# not yet thresholds — numeric weights are set in Checkpoint 3 and tuned on the audit set.
+
+role:
+  title: "Senior AI Engineer — Founding Team"
+  company: "Redrob AI (Series A, AI-native talent-intelligence platform)"
+  location_pref: ["Noida", "Pune"]            # offices; hybrid, flexible cadence
+  location_ok: ["Hyderabad", "Mumbai", "Delhi NCR", "Gurgaon", "Bangalore"]  # Tier-1 IN, welcome
+  location_caseby: "outside India"            # case-by-case, NO visa sponsorship
+  experience_band_years: [5, 9]               # SOFT range, not a hard requirement
+  ideal_profile: >
+    6-8 yrs total, of which 4-5 in applied ML/AI at PRODUCT companies (not services);
+    has shipped >=1 end-to-end ranking/search/recommendation system to real users at
+    meaningful scale; defensible opinions on retrieval (hybrid vs dense), evaluation
+    (offline vs online), and LLM integration (fine-tune vs prompt); in or willing to
+    relocate to Noida/Pune; active on platform / clearly in the job market.
+  core_thesis: >
+    Rank on demonstrated career EVIDENCE, not listed skills. "Python expert" with no
+    project ranks below someone who shipped it. A Tier-5 may never write "RAG"/"Pinecone"
+    but built a recommendation system at a product company. A profile full of AI keywords
+    whose title is "Marketing Manager" is NOT a fit. Tilt toward shipper over researcher.
+
+# ---------------------------------------------------------------------------
+# MUST-HAVES — "Things you absolutely need" (JD). Absence caps the tier.
+# Evidence must come from CAREER HISTORY / coherent skill backing, not bare skill tokens.
+# ---------------------------------------------------------------------------
+must_haves:
+  - id: prod_embeddings_retrieval
+    desc: "Production embeddings-based retrieval deployed to real users; handled embedding
+           drift, index refresh, retrieval-quality regression."
+    evidence_terms: [embeddings, sentence-transformers, sentence transformers, bge, e5,
+                     openai embeddings, dense retrieval, semantic search, vector search,
+                     retrieval, rag, ann, nearest neighbor]
+  - id: vector_or_hybrid_search
+    desc: "Production vector DB / hybrid search infra (operational experience, any vendor)."
+    evidence_terms: [pinecone, weaviate, qdrant, milvus, faiss, opensearch, elasticsearch,
+                     bm25, hybrid search, vector database, vector db, inverted index, lucene, solr]
+  - id: strong_python
+    desc: "Strong Python; code quality matters."
+    evidence_terms: [python]
+  - id: ranking_evaluation
+    desc: "Hands-on evaluation frameworks for ranking: NDCG/MRR/MAP, offline-online
+           correlation, A/B test interpretation."
+    evidence_terms: [ndcg, mrr, map, offline-online, offline online, a/b test, ab test,
+                     evaluation, ranking metrics, learning to rank, ltr, relevance,
+                     experimentation, holdout, ground truth]
+
+# ---------------------------------------------------------------------------
+# NICE-TO-HAVES — "we'd like but won't reject you for" (JD). Within-tier bonus only.
+# ---------------------------------------------------------------------------
+nice_to_haves:
+  - {id: llm_finetune, terms: [lora, qlora, peft, fine-tune, fine tune, fine-tuning, sft, instruction tuning]}
+  - {id: learning_to_rank, terms: [xgboost, lightgbm, learning to rank, ltr, gbdt, ranknet, lambdamart, neural ranker]}
+  - {id: hrtech_marketplace, terms: [hr-tech, recruiting, marketplace, two-sided, talent, ats]}
+  - {id: distributed_scale, terms: [distributed systems, large-scale, inference optimization, low latency, throughput, sharding]}
+  - {id: oss_ai, terms: [open source, open-source, oss, github, contributor, maintainer]}
+
+# ---------------------------------------------------------------------------
+# DISQUALIFIERS — JD "disqualifiers we actually apply" (hard-ish: cap to T1, often T0/T1).
+# ---------------------------------------------------------------------------
+disqualifiers:
+  - id: research_only_no_prod
+    desc: "Pure research / academic-only with NO production deployment. JD: 'we will not
+           move forward.' (Watch AI Research Engineer / academic labs / papers-only.)"
+    action: cap_tier_1
+  - id: recent_langchain_only
+    desc: "AI experience = recent (<12mo) LangChain-calling-OpenAI only, WITHOUT substantial
+           pre-LLM-era ML production. JD: 'probably will not move forward.'"
+    action: cap_tier_1
+  - id: no_prod_code_18mo
+    desc: "Senior who hasn't written production code in last 18 months (moved to
+           architecture/tech-lead). 'This role writes code.'"
+    action: demote_strong
+
+# ---------------------------------------------------------------------------
+# EXPLICITLY-NOT-WANTED — JD "Things we explicitly do NOT want" (penalty / cap).
+# ---------------------------------------------------------------------------
+not_wanted:
+  - id: title_chaser
+    desc: "Job-hops ~every 1.5 yrs optimizing Senior->Staff->Principal titles; wants 3+ yr
+           tenure intent. Detect: many short stints (avg tenure < ~18mo) with rising titles."
+    action: penalty
+  - id: framework_enthusiast
+    desc: "GitHub full of LangChain tutorials / '[hot framework] demo' blog posts; not a
+           systems thinker. Detect: only framework tokens, no systems/eval evidence."
+    action: penalty
+  - id: consulting_only
+    desc: "Entire career at services firms (TCS, Infosys, Wipro, Accenture, Cognizant,
+           Capgemini, etc.) with NO product-company experience. OK if prior product role."
+    companies: [tcs, tata consultancy, infosys, wipro, accenture, cognizant, capgemini,
+                hcl, tech mahindra, mindtree, ltimindtree, mphasis, dxc, ibm services]
+    action: cap_tier_2_if_exclusive
+  - id: cv_speech_robotics_no_nlp
+    desc: "Primary expertise computer vision / speech / robotics WITHOUT significant NLP/IR."
+    cv_terms: [computer vision, object detection, image classification, opencv, cnn,
+               segmentation, speech recognition, robotics, slam, pose estimation, gans]
+    action: penalty_if_no_nlp_ir
+  - id: closed_source_no_validation
+    desc: "5+ yrs entirely closed-source proprietary work with no external validation
+           (papers/talks/OSS). Softer signal."
+    action: minor_penalty
+
+# ---------------------------------------------------------------------------
+# BEHAVIORAL MODIFIER — JD + redrob_signals_doc: down-weight 'not actually available'.
+# Applied as a capped multiplier on the within-tier score (never promotes across tiers).
+# ---------------------------------------------------------------------------
+behavioral:
+  availability:
+    recruiter_response_rate: {low_penalty_below: 0.15, good_above: 0.6}   # JD: 5% resp = not available
+    last_active_days: {stale_above: 180, fresh_below: 60}                  # ~6-mo dormant down-weight
+    open_to_work_flag: bonus_if_true
+    interview_completion_rate: low_penalty_when_low
+  logistics:
+    notice_period_days: {ideal_max: 30, buyout_max: 30, higher_bar_above: 30}  # JD
+    location_fit: prefer ["Noida","Pune"] then location_ok; outside_india minor_penalty
+    willing_to_relocate: bonus_if_true_and_outside_target
+  credibility:
+    github_activity_score: bonus_if_positive       # -1 == none (65% of pool)
+    skill_assessment_scores: bonus_if_present_and_high  # empty for 76% of pool
+    verified_email_phone_linkedin: minor_bonus
+  cap: "Behavioral multiplier bounded (e.g. ~0.7x..1.15x) so it modifies, never dominates,
+        evidence tier."
+
+# ---------------------------------------------------------------------------
+# INTEGRITY — honeypots & keyword stuffers (see DATA_AUDIT.md §7-8). Override everything.
+# ---------------------------------------------------------------------------
+integrity:
+  honeypot_rules:        # any hit -> force relevance/tier 0, exclude from top-100
+    - expert_or_advanced_skill_with_duration_months_0      # H1 (doc example)
+    - role_duration_months_inconsistent_with_dates         # H3 (doc example: 8y @ 3y-old co)
+    - sum_career_months_far_exceeds_years_of_experience    # H6
+    - expert_skill_used_longer_than_whole_career           # H2b (tune threshold)
+  keyword_stuffer:       # strong penalty, not auto-zero
+    desc: "Non-technical/off-domain title + many core-AI skills with weak backing
+           (empty assessments, github -1, low/zero skill duration, incoherent skill mix)."
+    action: heavy_penalty
+
+# ---------------------------------------------------------------------------
+# EVIDENCE TIERS — mapping for graded relevance. P@10 counts tier>=3 as 'relevant';
+# NDCG uses graded gains, so T5 must outrank T4 outrank T3 in the top-10.
+# Title is the PRIOR; career-history archetype + skill coherence confirm/adjust; integrity overrides.
+# ---------------------------------------------------------------------------
+tiers:
+  T5:
+    label: "Core fit — production ranking/retrieval/recsys/search at scale + eval"
+    requires: ">=3 of 4 must-haves evidenced in CAREER HISTORY at a PRODUCT company,
+               including retrieval/ranking AND evaluation; 5-9 (flex) yrs; hands-on recent."
+    title_priors: ["Recommendation Systems Engineer", "Search Engineer", "ML Engineer",
+                   "Senior Software Engineer (ML)", "Applied ML Engineer", "NLP Engineer",
+                   "AI Engineer", "Data Scientist (with ranking/retrieval prod)"]
+    example: "CAND_0000031 (RecSys Eng @ Swiggy: ranking models + offline-online eval)."
+  T4:
+    label: "Strong adjacent — recsys/semantic-search/LTR/production-RAG, missing ONE must-have"
+    requires: "Production applied ML with retrieval/ranking but e.g. no explicit eval-framework
+               evidence, or vector-infra implied not stated; or NLP prod without full eval."
+    title_priors: ["ML Engineer", "Data Scientist", "NLP Engineer", "AI Specialist",
+                   "Senior Software Engineer (ML)"]
+  T3:
+    label: "Deployed applied ML / strong data eng that shipped search/recsys infra (relevance floor)"
+    requires: "General applied ML or a Data/Backend engineer whose career shows building
+               search/recommendation/ranking-adjacent systems at a product company."
+    title_priors: ["Data Scientist", "Senior Data Engineer", "Data Engineer", "Analytics Engineer",
+                   "Backend Engineer (with search/data-platform work)"]
+  T2:
+    label: "Data/backend/ML-infra/software, adjacent, no direct retrieval/ranking ownership"
+    title_priors: ["Data Engineer", "Backend Engineer", "Cloud Engineer", "DevOps Engineer",
+                   "Software Engineer", "Full Stack Developer", "Senior Software Engineer"]
+  T1:
+    label: "Weak/superficial — generic dev, research-only, consulting-only, CV/speech-only,
+            framework-enthusiast, or keyword-stuffer with non-matching career"
+    title_priors: ["Java Developer", ".NET Developer", "Frontend Engineer", "Mobile Developer",
+                   "QA Engineer", "Computer Vision Engineer (no NLP/IR)", "AI Research Engineer (no prod)"]
+  T0:
+    label: "Non-technical / off-domain OR honeypot / impossible — forced relevance 0"
+    title_priors: ["HR Manager", "Marketing Manager", "Sales Executive", "Accountant",
+                   "Content Writer", "Graphic Designer", "Operations Manager", "Customer Support",
+                   "Project Manager", "Business Analyst", "Civil Engineer", "Mechanical Engineer"]
+    note: "Any honeypot signature -> T0 regardless of title. ~68% of pool sits here by title."
+
+# ---------------------------------------------------------------------------
+# Changes vs the original plan's tier GUESS (override #2 reporting):
+#  - Plan T5 ('production search/ranking/retrieval/matching at scale') was CORRECT for this JD.
+#  - Added evaluation-framework as a hard must-have (JD lists it under 'absolutely need').
+#  - Added product-vs-consulting-vs-research as a tier gate (JD disqualifiers).
+#  - Added NLP/IR-over-CV/speech and anti-title-chaser / anti-framework-enthusiast penalties.
+#  - Confirmed soft 5-9 band (range, not hard cut) and India/Noida-Pune location weighting.
+# ---------------------------------------------------------------------------
