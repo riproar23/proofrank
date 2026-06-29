@@ -343,6 +343,14 @@ def save_upload_to_disk(uploaded_file, dest: Path) -> None:
                 f.write(chunk)
 
 
+def list_datasets() -> list[Path]:
+    """Return all .jsonl files in data/, candidates.jsonl first."""
+    data_dir = ROOT / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    return sorted(data_dir.glob("*.jsonl"),
+                  key=lambda p: (p.name != "candidates.jsonl", p.name))
+
+
 # ─── Pipeline ─────────────────────────────────────────────────────────────────
 
 def _run_subprocess_logged(cmd: list[str], label: str, status_obj) -> tuple[int, str]:
@@ -393,7 +401,11 @@ def run_pipeline(jsonl_path: Path) -> tuple[bool, str, dict]:
             status.update(label="Card rebuild failed ❌", state="error")
             return False, f"Card rebuild failed: {out2[:300]}", {}
         status.update(label="Analysis complete ✅", state="complete")
-    return True, "", {"source": jsonl_path.name, "n_input": n_input, "n_ranked": 100}
+    try:
+        n_ranked = len(json.loads(DATA_PATH.read_text(encoding="utf-8")))
+    except Exception:
+        n_ranked = 100
+    return True, "", {"source": jsonl_path.name, "n_input": n_input, "n_ranked": n_ranked}
 
 
 # ─── Plain-language card helpers ──────────────────────────────────────────────
@@ -949,15 +961,17 @@ with st.sidebar:
 
     # ── Data section ──────────────────────────────────────────────────────────
     st.markdown("#### 🗂 Data")
-    jsonl_present = JSONL_PATH.exists()
+    _active_ds_str = st.session_state.get("active_dataset", str(JSONL_PATH))
+    _active_ds = Path(_active_ds_str)
+    jsonl_present = _active_ds.exists()
     if jsonl_present:
-        sz_mb = JSONL_PATH.stat().st_size / 1_048_576
-        st.caption(f"📄 {JSONL_PATH.name} ({sz_mb:.0f} MB)")
+        sz_mb = _active_ds.stat().st_size / 1_048_576
+        st.caption(f"📄 {_active_ds.name} ({sz_mb:.0f} MB)")
     else:
-        st.caption("📄 No dataset file found at `data/candidates.jsonl`")
+        st.caption("📄 No dataset file found")
 
     rerank_help = (
-        "Re-analyze all candidates in data/candidates.jsonl and refresh the view."
+        f"Re-analyze all candidates in {_active_ds.name} and refresh the view."
         if jsonl_present
         else "No dataset found. Place candidates.jsonl in the data/ folder first."
     )
@@ -969,7 +983,7 @@ with st.sidebar:
         use_container_width=True,
     ):
         st.session_state["pipeline_action"] = "rerank"
-        st.session_state["pipeline_jsonl"]  = str(JSONL_PATH)
+        st.session_state["pipeline_jsonl"]  = _active_ds_str
         st.rerun()
 
     st.write("")
@@ -977,7 +991,7 @@ with st.sidebar:
     with st.expander("📤  Upload a new dataset"):
         st.markdown(
             "Upload a `.jsonl` or `.jsonl.gz` file of candidates. "
-            "It will be validated, saved, and ranked automatically.\n\n"
+            "It will be validated, saved, and ranked.\n\n"
             "**Required fields per record:** `candidate_id`, `profile`, "
             "`career_history`, `skills`, `redrob_signals`\n\n"
             "_Large files (>200 MB) may take a moment to upload._"
@@ -989,29 +1003,83 @@ with st.sidebar:
             label_visibility="collapsed",
         )
         if uploaded is not None:
-            already = st.session_state.get("processed_upload") == uploaded.name
-            if not already:
-                with st.spinner("Validating schema…"):
-                    uploaded.seek(0)
-                    sample = uploaded.read(1_048_576)
-                    uploaded.seek(0)
-                    err = validate_jsonl_bytes(sample, uploaded.name)
-                if err:
-                    st.error(f"⚠️ Invalid file: {err}")
-                else:
+            # Validate once per file (keyed by name + size so re-uploads re-validate)
+            _vkey = f"{uploaded.name}:{uploaded.size}"
+            if st.session_state.get("_upload_vkey") != _vkey:
+                uploaded.seek(0)
+                _sample = uploaded.read(1_048_576)
+                uploaded.seek(0)
+                _verr = validate_jsonl_bytes(_sample, uploaded.name)
+                st.session_state["_upload_vkey"] = _vkey
+                st.session_state["_upload_verr"] = _verr
+            _verr = st.session_state.get("_upload_verr")
+            if _verr:
+                st.error(f"⚠️ Invalid file: {_verr}")
+            else:
+                st.success(f"✅ **{uploaded.name}** looks valid.")
+                if st.button(
+                    "⬆️  Upload & Rank",
+                    type="primary",
+                    use_container_width=True,
+                    key="upload_rank_btn",
+                ):
                     with st.spinner("Saving to disk…"):
                         save_upload_to_disk(uploaded, UPLOADED_JSONL_PATH)
-                    n_lines = sum(1 for _ in open(UPLOADED_JSONL_PATH, "rb"))
-                    st.success(
-                        f"✅ Saved **{uploaded.name}** "
-                        f"({n_lines:,} candidates). Starting re-analysis…"
-                    )
-                    st.session_state["processed_upload"] = uploaded.name
-                    st.session_state["pipeline_action"]  = "rerank"
-                    st.session_state["pipeline_jsonl"]   = str(UPLOADED_JSONL_PATH)
+                    st.session_state["_upload_vkey"] = None
+                    st.session_state["active_dataset"] = str(UPLOADED_JSONL_PATH)
+                    st.session_state["pipeline_action"] = "rerank"
+                    st.session_state["pipeline_jsonl"] = str(UPLOADED_JSONL_PATH)
                     st.rerun()
-            else:
-                st.info(f"✅ **{uploaded.name}** is already loaded.")
+
+    st.write("")
+    with st.expander("🗂  Manage datasets"):
+        _mgr_active_str = st.session_state.get("active_dataset", str(JSONL_PATH))
+        _mgr_active = Path(_mgr_active_str)
+        _mgr_datasets = list_datasets()
+        if not _mgr_datasets:
+            st.caption("No .jsonl files found in the data/ folder.")
+        else:
+            st.caption(f"Active: **{_mgr_active.name}**")
+            st.write("")
+            for _ds in _mgr_datasets:
+                _ds_active = _ds.resolve() == _mgr_active.resolve()
+                _ds_default = _ds.name == "candidates.jsonl"
+                try:
+                    _ds_mb = f"{_ds.stat().st_size / 1_048_576:.0f} MB"
+                except Exception:
+                    _ds_mb = ""
+                _c1, _c2, _c3 = st.columns([5, 2, 1])
+                with _c1:
+                    _icon = "✓ " if _ds_active else ""
+                    _bold = "**" if _ds_active else ""
+                    st.markdown(
+                        f"{_bold}{_icon}{_ds.name}{_bold}"
+                        + (f"  \n<span style='font-size:.82rem;color:var(--muted)'>{_ds_mb}</span>"
+                           if _ds_mb else ""),
+                        unsafe_allow_html=True,
+                    )
+                with _c2:
+                    if _ds_active:
+                        st.markdown(
+                            "<span style='font-size:.82rem;color:var(--muted)'>Active</span>",
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        if st.button("Use this", key=f"ds_use_{_ds.name}",
+                                     use_container_width=True):
+                            st.session_state["active_dataset"] = str(_ds)
+                            st.session_state["pipeline_action"] = "rerank"
+                            st.session_state["pipeline_jsonl"] = str(_ds)
+                            st.rerun()
+                with _c3:
+                    if not _ds_default:
+                        if st.button("✕", key=f"ds_rm_{_ds.name}",
+                                     help=f"Delete {_ds.name}",
+                                     use_container_width=True):
+                            _ds.unlink(missing_ok=True)
+                            if _ds.resolve() == _mgr_active.resolve():
+                                st.session_state["active_dataset"] = str(JSONL_PATH)
+                            st.rerun()
 
     # ── Manual candidate entry ─────────────────────────────────────────────────
     st.write("")
