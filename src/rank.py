@@ -825,11 +825,11 @@ def main() -> int:
 
     # Write flagged.json sidecar (top-50 most egregious, by violation count)
     if args.mode == "final":
-        flagged_sorted = sorted(flagged_list, key=lambda x: -x["severity"])[:50]
+        flagged_sorted = sorted(flagged_list, key=lambda x: -x["severity"])
         flagged_path = output_path.parent / "flagged.json"
         flagged_path.write_text(json.dumps(flagged_sorted, indent=2, ensure_ascii=False),
                                 encoding="utf-8")
-        print(f"Flagged profiles: {len(flagged_list)} total, wrote top {len(flagged_sorted)} to {flagged_path}")
+        print(f"Flagged profiles: {len(flagged_sorted)} written to {flagged_path}")
 
     print("\nRunning data/validate_submission.py ...")
     res = subprocess.run([sys.executable, "data/validate_submission.py", str(output_path)],

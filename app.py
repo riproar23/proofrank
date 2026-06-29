@@ -207,23 +207,23 @@ details.pr-overflow-det[open] > summary::after{ content:"▾"; }
 
 /* flagged candidate cards */
 .pr-flag-card{
-  background:#FFFBF2; border:1px solid #E8CC88; border-radius:12px;
-  padding:.75rem 1rem; margin:0 0 .75rem 0;
+  background:#FFFBF2; border:1px solid #E8CC88; border-left:3px solid var(--amber);
+  border-radius:10px; padding:.75rem 1rem; margin:0 0 .65rem 0;
 }
-.pr-flag-head{ display:flex; align-items:baseline; gap:.75rem; margin-bottom:.45rem; }
-.pr-flag-title{ font-size:.99rem; font-weight:640; color:var(--ink); flex:1; min-width:0; }
-.pr-flag-badge{
-  flex:0 0 auto; font-size:.8rem; font-weight:700; background:var(--amber-soft);
-  color:var(--amber); border:1px solid #E8CC88; border-radius:999px; padding:.18rem .55rem;
+.pr-flag-title{ font-size:1rem; font-weight:660; color:var(--ink); margin-bottom:.1rem; }
+.pr-flag-sub{ font-size:.87rem; color:var(--muted); margin-bottom:.5rem; }
+.pr-flag-violation{
+  font-size:.92rem; color:var(--ink); line-height:1.5; margin:.22rem 0;
 }
-.pr-flag-rule{ margin:.28rem 0; font-size:.91rem; }
+.pr-flag-chips{ display:flex; flex-wrap:wrap; gap:.3rem .5rem; margin-top:.55rem; align-items:center; }
 .pr-flag-code{
-  display:inline-block; font-size:.76rem; font-weight:720; text-transform:uppercase;
+  display:inline-block; font-size:.74rem; font-weight:720; text-transform:uppercase;
   letter-spacing:.05em; color:var(--amber); background:var(--amber-soft);
-  border:1px solid #E8CC88; border-radius:5px; padding:.05rem .38rem; margin-right:.4rem;
+  border:1px solid #E8CC88; border-radius:5px; padding:.05rem .38rem;
 }
+.pr-flag-code-label{ font-size:.82rem; color:var(--muted); margin-right:.35rem; }
 .pr-flag-note{
-  font-size:.83rem; color:var(--muted); margin-top:.5rem; padding-top:.4rem;
+  font-size:.82rem; color:var(--muted); margin-top:.5rem; padding-top:.4rem;
   border-top:1px dashed #E8CC88;
 }
 
@@ -700,37 +700,38 @@ _FLAG_LABELS: dict[str, str] = {
 
 
 def flagged_card_html(entry: dict) -> str:
-    title = html.escape(entry.get("title", "Unknown"))
-    yoe   = entry.get("years_of_experience", 0)
-    loc   = entry.get("location", "")
-    sub   = f"{yoe:.0f} yrs experience" + (f" · {html.escape(loc)}" if loc else "")
+    title   = html.escape(entry.get("title", "Unknown"))
+    yoe     = entry.get("years_of_experience", 0)
+    loc     = entry.get("location", "")
+    sub     = f"{yoe:.0f} yrs experience" + (f" · {html.escape(loc)}" if loc else "")
     reasons = entry.get("reasons", [])
-    n = len(reasons)
-    badge = f"⚠️ {n} violation{'s' if n != 1 else ''}"
 
-    rules_html = []
+    violations = "".join(
+        f'<div class="pr-flag-violation">⚠️ {html.escape(r.get("plain", ""))}</div>'
+        for r in reasons
+    )
+
+    # Deduplicated code chips for the technical reviewer
+    seen: set[str] = set()
+    chips: list[str] = []
     for r in reasons:
-        code  = r.get("code", "")
-        label = html.escape(_FLAG_LABELS.get(code, code))
-        plain = html.escape(r.get("plain", ""))
-        rules_html.append(
-            f'<div class="pr-flag-rule">'
-            f'<span class="pr-flag-code">{html.escape(code)}</span>'
-            f'<span style="color:var(--muted);font-size:.8rem">{label}</span> — '
-            f'{plain}'
-            f'</div>'
-        )
+        code = r.get("code", "")
+        if code not in seen:
+            seen.add(code)
+            label = html.escape(_FLAG_LABELS.get(code, code))
+            chips.append(
+                f'<span class="pr-flag-code">{html.escape(code)}</span>'
+                f'<span class="pr-flag-code-label">{label}</span>'
+            )
 
     return (
         f'<div class="pr-flag-card">'
-        f'<div class="pr-flag-head">'
-        f'<span class="pr-flag-title">⚠️ {title}</span>'
-        f'<span class="pr-flag-badge">{badge}</span>'
-        f'</div>'
-        f'<div style="font-size:.88rem;color:var(--muted);margin-bottom:.4rem">{sub}</div>'
-        + "".join(rules_html) +
-        f'<div class="pr-flag-note">This profile was excluded from the shortlist. '
-        f'A human reviewer should verify before any employment decision.</div>'
+        f'<div class="pr-flag-title">{title}</div>'
+        f'<div class="pr-flag-sub">{sub}</div>'
+        + violations +
+        f'<div class="pr-flag-chips">{"".join(chips)}</div>'
+        f'<div class="pr-flag-note">Excluded from shortlist · '
+        f'Human review recommended before any employment decision</div>'
         f'</div>'
     )
 
@@ -917,21 +918,18 @@ with st.sidebar:
     st.divider()
 
     # View filters
-    show         = st.radio("Show", ["All", "Top 10", "Top 50"], index=0)
-    strong_only  = st.toggle("Only show strong matches", value=False,
-                             help="Strong or Excellent matches (top 30).")
-    flagged_only = st.toggle("Flagged profiles only", value=False,
-                             help="Profiles with details worth verifying.")
+    show        = st.radio("Show", ["All", "Top 10", "Top 50"], index=0)
+    strong_only = st.toggle("Only show strong matches", value=False,
+                            help="Strong or Excellent matches (top 30).")
     st.divider()
 
     # Apply filters
     filtered: list[dict] = []
     for c in display_candidates:
         r = c["rank"]
-        if show == "Top 10" and r > 10:                 continue
-        if show == "Top 50" and r > 50:                 continue
-        if strong_only      and r > 30:                 continue
-        if flagged_only     and not c.get("flags"):     continue
+        if show == "Top 10" and r > 10: continue
+        if show == "Top 50" and r > 50: continue
+        if strong_only      and r > 30: continue
         filtered.append(c)
 
     n_manual = sum(1 for c in filtered if c.get("_manual"))
@@ -1134,88 +1132,127 @@ with st.expander("ℹ️  How this works"):
 
 st.write("")
 
-# ── Manual candidate preview ──────────────────────────────────────────────────
-if "manual_result" in st.session_state:
-    mr       = st.session_state["manual_result"]
-    rp       = mr["rank"]
-    name_str = mr.get("profile", {}).get("name") or mr["candidate_id"]
-    honeypot = mr.get("score", 0) < -1e8
+# ── Tabs ──────────────────────────────────────────────────────────────────────
+flagged_all = load_flagged(st.session_state.get("cache_key", 0))
+tab_shortlist, tab_flagged = st.tabs([
+    f"📋 Shortlist ({len(display_candidates)})",
+    f"⚠️ Flagged Profiles ({len(flagged_all)})" if flagged_all else "⚠️ Flagged Profiles",
+])
 
-    if honeypot:
-        st.error(
-            f"**{name_str}** was flagged as a likely honeypot / inconsistent profile "
-            f"and would be excluded from the shortlist entirely. Check the 'See the "
-            f"details' panel for the specific integrity flags."
-        )
-    else:
-        st.markdown(
-            f'<div class="pr-sec-h" style="margin-top:0">'
-            f'🎯 Candidate preview — would rank ~#{rp} among the current pool'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+# ── Shortlist tab ─────────────────────────────────────────────────────────────
+with tab_shortlist:
+    # Manual candidate preview
+    if "manual_result" in st.session_state:
+        mr       = st.session_state["manual_result"]
+        rp       = mr["rank"]
+        name_str = mr.get("profile", {}).get("name") or mr["candidate_id"]
+        honeypot = mr.get("score", 0) < -1e8
 
-    col_card, col_btns = st.columns([5, 1])
-    with col_btns:
-        st.write("")
-        if not honeypot:
-            if st.button("Add to pool", key="add_to_pool", type="primary",
-                         use_container_width=True):
-                pool = st.session_state.get("manual_pool", [])
-                pool.append(st.session_state.pop("manual_result"))
-                st.session_state["manual_pool"] = pool
+        if honeypot:
+            st.error(
+                f"**{name_str}** was flagged as a likely honeypot / inconsistent profile "
+                f"and would be excluded from the shortlist entirely. Check the 'See the "
+                f"details' panel for the specific integrity flags."
+            )
+        else:
+            st.markdown(
+                f'<div class="pr-sec-h" style="margin-top:0">'
+                f'🎯 Candidate preview — would rank ~#{rp} among the current pool'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        col_card, col_btns = st.columns([5, 1])
+        with col_btns:
+            st.write("")
+            if not honeypot:
+                if st.button("Add to pool", key="add_to_pool", type="primary",
+                             use_container_width=True):
+                    pool = st.session_state.get("manual_pool", [])
+                    pool.append(st.session_state.pop("manual_result"))
+                    st.session_state["manual_pool"] = pool
+                    st.rerun()
+            if st.button("Clear", key="clear_preview", use_container_width=True):
+                st.session_state.pop("manual_result", None)
                 st.rerun()
-        if st.button("Clear", key="clear_preview", use_container_width=True):
-            st.session_state.pop("manual_result", None)
-            st.rerun()
 
-    with col_card:
-        st.markdown(
-            candidate_card(mr, open_default=True, extra_class="manual-entry"),
-            unsafe_allow_html=True,
-        )
+        with col_card:
+            st.markdown(
+                candidate_card(mr, open_default=True, extra_class="manual-entry"),
+                unsafe_allow_html=True,
+            )
 
-    if manual_pool:
-        st.caption(
-            f"Pool also contains {len(manual_pool)} manually-added candidate(s) "
-            "ranked among the main list below."
-        )
-    st.divider()
+        if manual_pool:
+            st.caption(
+                f"Pool also contains {len(manual_pool)} manually-added candidate(s) "
+                "ranked among the main list below."
+            )
+        st.divider()
 
-if not filtered:
-    st.info("No candidates match the current filters. Try turning a filter off.")
-    st.stop()
+    if not filtered:
+        st.info("No candidates match the current filters. Try turning a filter off.")
+    else:
+        for row in filtered:
+            extra = "manual-entry" if row.get("_manual") else ""
+            st.markdown(candidate_card(row, open_default=row["rank"] <= 5, extra_class=extra),
+                        unsafe_allow_html=True)
 
-# ── Candidate cards ───────────────────────────────────────────────────────────
-for row in filtered:
-    extra = "manual-entry" if row.get("_manual") else ""
-    st.markdown(candidate_card(row, open_default=row["rank"] <= 5, extra_class=extra),
-                unsafe_allow_html=True)
-
-st.write("")
-
-# ── Flagged profiles section ──────────────────────────────────────────────────
-flagged = load_flagged(st.session_state.get("cache_key", 0))
-with st.expander(
-    f"⚠️  Flagged profiles — excluded from shortlist ({len(flagged)} shown)"
-    if flagged else "⚠️  Flagged profiles — none detected in current dataset"
-):
-    if not flagged:
+# ── Flagged Profiles tab ──────────────────────────────────────────────────────
+with tab_flagged:
+    if not flagged_all:
         st.success(
             "✅ No integrity violations detected in the current dataset. "
             "All candidates passed the honeypot and consistency checks."
         )
     else:
-        st.markdown(
-            f"The integrity layer automatically detected and excluded **{len(flagged)} profiles** "
-            f"from the shortlist. Each card below explains — in plain language — what was "
-            f"inconsistent. These are shown for transparency; no automated system is perfect, "
-            f"so treat these as signals, not verdicts.",
-            unsafe_allow_html=False,
+        # Sort / filter controls
+        ctrl1, ctrl2, ctrl3 = st.columns([2, 3, 2])
+        with ctrl1:
+            sort_by = st.selectbox(
+                "Sort by",
+                ["Most severe first", "Most violations first", "Alphabetical by title"],
+            )
+        with ctrl2:
+            all_codes = sorted({r["code"] for e in flagged_all for r in e.get("reasons", [])})
+            code_options = [f"{c} — {_FLAG_LABELS.get(c, c)}" for c in all_codes]
+            selected_opts = st.multiselect(
+                "Filter by violation type", code_options, default=code_options,
+            )
+        with ctrl3:
+            n_limit = st.number_input(
+                "Show up to N (0 = all)", min_value=0, value=0, step=10,
+            )
+
+        # Apply sort
+        if sort_by == "Most violations first":
+            view = sorted(flagged_all, key=lambda e: -len(e.get("reasons", [])))
+        elif sort_by == "Alphabetical by title":
+            view = sorted(flagged_all, key=lambda e: e.get("title", "").lower())
+        else:
+            view = sorted(flagged_all, key=lambda e: -e.get("severity", 0))
+
+        # Apply filter
+        selected_codes = {s.split(" — ")[0] for s in selected_opts}
+        view = [e for e in view if any(r["code"] in selected_codes for r in e.get("reasons", []))]
+
+        # Apply limit
+        n_total = len(view)
+        if n_limit > 0:
+            view = view[:n_limit]
+
+        st.caption(
+            f"Showing **{len(view)}** of **{len(flagged_all)}** flagged profiles. "
+            "These candidates were automatically excluded from the shortlist."
         )
         st.write("")
-        for entry in flagged:
-            st.markdown(flagged_card_html(entry), unsafe_allow_html=True)
+
+        if view:
+            st.markdown(
+                "\n".join(flagged_card_html(e) for e in view),
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("No profiles match the selected filters.")
 
 st.write("")
 st.caption(
