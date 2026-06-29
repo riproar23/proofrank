@@ -52,194 +52,266 @@ DONE_ITEMS = [
     ("shipping",   "Has shipped to real users at scale"),
 ]
 
-# ─── Warm, premium CSS (offline; system font stack, no web fonts) ─────────────
+# ─── CSS + dark-mode JS (generated per render so dark state can be injected) ──
 
-CSS = """
+def _css(dark: bool) -> str:
+    # Dark mode variables injected directly into :root so React re-renders don't strip them
+    if dark:
+        theme_vars = """
+  --bg:#1C1814;--bg2:#231F1A;--surface:#2A2520;--surface2:#322D27;
+  --border:rgba(255,220,180,0.10);--border-strong:rgba(255,220,180,0.22);
+  --ink:#F0EBE3;--ink2:#B8A898;--ink3:#7A6E62;
+  --aqua:#2DD4BF;--aqua-soft:rgba(45,212,191,0.12);
+  --amber:#F59E0B;--amber-soft:rgba(245,158,11,0.10);
+  --rose:#FB7185;
+  --shadow:0 2px 12px rgba(0,0,0,0.30);
+  --shadow-open:0 8px 28px rgba(0,0,0,0.40);"""
+    else:
+        theme_vars = """
+  --bg:#FAF7F2;--bg2:#F3EFE8;--surface:#FFFFFF;--surface2:#F7F4EE;
+  --border:rgba(180,165,140,0.3);--border-strong:rgba(180,165,140,0.6);
+  --ink:#2C2416;--ink2:#6B5E4E;--ink3:#A0917F;
+  --aqua:#0D9488;--aqua-soft:rgba(13,148,136,0.10);
+  --amber:#B45309;--amber-soft:rgba(180,83,9,0.08);
+  --rose:#9F1239;
+  --shadow:0 2px 12px rgba(100,80,40,0.08);
+  --shadow-open:0 8px 28px rgba(100,80,40,0.14);"""
+    return f"""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#FBF6EE; --card:#FFFDFA; --ink:#3B3531; --muted:#8C827A;
-  --line:#ECE1D3; --accent:#DD7A5B; --accent-soft:#FBEBE2;
-  --sage:#6E9E8E; --sage-soft:#E7F1ED; --amber:#C68A3A; --amber-soft:#FaF0DD;
-  --shadow:0 6px 24px rgba(120,90,60,.10);
-}
-html, body, [data-testid="stAppViewContainer"], .stApp{
-  background:var(--bg) !important;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color:var(--ink);
-}
-[data-testid="stHeader"]{ background:transparent; }
-#MainMenu, footer{ visibility:hidden; }
-.block-container{ padding-top:2.2rem; padding-bottom:3rem; max-width:1180px; }
-[data-testid="stSidebar"]{ background:#F6EEE2; border-right:1px solid var(--line); }
-[data-testid="stSidebar"] *{ color:var(--ink); }
-
-/* hero */
-.pr-hero h1{
-  font-size:2.05rem; font-weight:740; letter-spacing:-.4px; margin:0 0 .35rem 0;
-  color:var(--ink);
-}
-.pr-hero p{ font-size:1.06rem; line-height:1.6; color:var(--muted); margin:0; max-width:760px; }
-
-/* dataset status banner */
-.pr-meta{
-  background:#F2EAE0; border:1px solid var(--line); border-radius:10px;
-  padding:.55rem .95rem; margin:.3rem 0 1.2rem 0;
-  font-size:.93rem; color:var(--muted); display:flex; gap:.5rem; align-items:center;
-}
-.pr-meta .dot{ width:8px; height:8px; border-radius:50%; background:var(--sage);
-               flex:0 0 auto; }
-
-/* cards (HTML <details>) */
-details.pr-card{
-  background:var(--card); border:1px solid var(--line); border-radius:16px;
-  box-shadow:var(--shadow); padding:.35rem 1.25rem; margin:0 0 1rem 0;
-  transition:box-shadow .2s ease;
-}
-details.pr-card[open]{ box-shadow:0 10px 34px rgba(120,90,60,.14); }
-details.pr-card.manual-entry{ border-color:var(--sage); border-width:2px; }
-details.pr-card > summary{
-  list-style:none; cursor:pointer; display:flex; align-items:center; gap:1rem;
-  padding:.95rem .1rem; outline:none;
-}
-details.pr-card > summary::-webkit-details-marker{ display:none; }
-details.pr-card > summary::after{
-  content:"⌄"; margin-left:.35rem; color:var(--muted); font-size:1.4rem;
-  line-height:1; transform:translateY(-2px); transition:transform .2s ease;
-}
-details.pr-card[open] > summary::after{ transform:rotate(180deg) translateY(0); }
-
-.pr-rank{
-  flex:0 0 auto; min-width:46px; height:46px; border-radius:12px;
-  background:var(--accent-soft); color:var(--accent); font-weight:730;
-  display:flex; align-items:center; justify-content:center; font-size:1.02rem;
-}
-details.pr-card.manual-entry .pr-rank{ background:var(--sage-soft); color:var(--sage); }
-.pr-sum-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:.15rem; }
-.pr-title{ font-size:1.16rem; font-weight:680; color:var(--ink); }
-.pr-sub{ font-size:.97rem; color:var(--muted); }
-.pr-sum-match{ flex:0 0 auto; text-align:right; display:flex; flex-direction:column; gap:.2rem; }
-.pr-dots{ font-size:1.02rem; letter-spacing:2px; }
-.pr-dots .on{ color:var(--accent); }
-.pr-dots .off{ color:#E2D6C6; }
-.pr-mlabel{ font-size:.9rem; font-weight:640; color:var(--ink); }
-.pr-flag-pin{ flex:0 0 auto; font-size:1.15rem; }
-
-/* body */
-.pr-body{ padding:.25rem .15rem 1.1rem .15rem; }
-.pr-facts{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.2rem 0 1.1rem 0; }
-.pr-chip{
-  background:#F6EFE6; border:1px solid var(--line); border-radius:999px;
-  padding:.32rem .8rem; font-size:.95rem; color:var(--ink);
-}
-.pr-chip.avail{ background:var(--sage-soft); border-color:#CFE6DD; color:#3F6F60; font-weight:600; }
-.pr-sec-h{
-  font-size:.82rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--muted); margin:1.1rem 0 .55rem 0;
-}
-.pr-check{ display:flex; align-items:flex-start; gap:.6rem; padding:.32rem 0; font-size:1.02rem; }
-.pr-check .ic{ font-size:1.05rem; line-height:1.5; }
-.pr-check.no{ color:var(--muted); }
-
-.pr-why{ border-radius:13px; padding:.85rem 1rem; margin:.55rem 0; line-height:1.55; font-size:1.01rem; }
-.pr-why b{ display:block; font-size:.82rem; letter-spacing:.05em; text-transform:uppercase; margin-bottom:.25rem; }
-.pr-why.good{ background:var(--sage-soft); }
-.pr-why.good b{ color:#3F6F60; }
-.pr-why.less{ background:#F6EFE6; }
-.pr-why.less b{ color:var(--muted); }
-.pr-flagbox{ background:var(--amber-soft); border-radius:13px; padding:.85rem 1rem; margin:.55rem 0; line-height:1.55; font-size:1.01rem; }
-.pr-flagbox b{ display:block; font-size:.82rem; letter-spacing:.05em; text-transform:uppercase; color:var(--amber); margin-bottom:.25rem; }
-
-.pr-role{ margin:.5rem 0; }
-.pr-role .rh{ font-size:.99rem; font-weight:620; color:var(--ink); }
-.pr-role .rd{ font-size:.96rem; color:var(--muted); line-height:1.55; margin-top:.15rem; }
-
-/* technical details (nested) */
-details.pr-tech{ margin-top:1rem; border-top:1px dashed var(--line); padding-top:.6rem; }
-details.pr-tech > summary{
-  list-style:none; cursor:pointer; font-size:.92rem; font-weight:620; color:var(--accent);
-  padding:.3rem 0;
-}
-details.pr-tech > summary::-webkit-details-marker{ display:none; }
-details.pr-tech > summary::before{ content:"🔍  "; }
-.pr-tech-body{ font-size:.92rem; color:var(--ink); line-height:1.6; }
-.pr-kv{ display:grid; grid-template-columns:max-content 1fr; gap:.2rem 1rem; margin:.4rem 0; }
-.pr-kv .k{ color:var(--muted); }
-.pr-tech-body code{ background:#F2EADF; padding:.05rem .35rem; border-radius:5px; font-size:.86rem; }
-.pr-tech-h{ font-weight:700; margin:.75rem 0 .35rem 0; color:var(--ink); font-size:.93rem; }
-
-/* behavioral 2-column grid */
-.pr-beh-grid{
-  display:grid; grid-template-columns:max-content 1fr;
-  gap:.38rem .9rem; margin:.35rem 0; align-items:baseline;
-}
-.pr-beh-k{ color:var(--muted); font-size:.9rem; white-space:nowrap; }
-.pr-beh-v{ font-size:.9rem; }
-
-/* skill + assessment chip pills (flex-wrap, never overflow) */
-.pr-chips{ display:flex; flex-wrap:wrap; gap:.4rem; margin:.4rem 0 .65rem 0; }
-.pr-skill-chip{
-  background:#F2EADF; border:1px solid var(--line); border-radius:8px;
-  padding:.24rem .65rem; font-size:.85rem; color:var(--ink); line-height:1.45;
-}
-.pr-assess-chip{
-  border-radius:8px; padding:.24rem .65rem; font-size:.85rem; line-height:1.45;
-  display:inline-flex; align-items:center; gap:.4rem;
-}
-.pr-assess-chip.hi{ background:#E7F1ED; border:1px solid #CFE6DD; color:#3F6F60; }
-.pr-assess-chip.md{ background:#FBF0E2; border:1px solid #E8CC88; color:#7A5C18; }
-.pr-assess-chip.lo{ background:#FBEBE2; border:1px solid #EAB8A0; color:#8C3C28; }
-.pr-assess-chip .as-band{
-  font-size:.74rem; font-weight:720; text-transform:uppercase; letter-spacing:.05em;
-}
-
-/* expandable skill overflow */
-details.pr-overflow-det{ margin-top:.35rem; }
-details.pr-overflow-det > summary{
-  list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:.35rem;
-  background:#F2EADF; border:1px solid var(--line); border-radius:8px;
-  padding:.24rem .65rem; font-size:.85rem; color:var(--accent);
-  font-weight:620; line-height:1.45;
-}
-details.pr-overflow-det > summary::-webkit-details-marker{ display:none; }
-details.pr-overflow-det > summary::after{ content:"▸"; font-size:.78rem; opacity:.7; }
-details.pr-overflow-det[open] > summary::after{ content:"▾"; }
-.pr-overflow-body{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.4rem; }
-
-/* flagged candidate cards */
-.pr-flag-card{
-  background:#FFFBF2; border:1px solid #E8CC88; border-left:3px solid var(--amber);
-  border-radius:10px; padding:.75rem 1rem; margin:0 0 .65rem 0;
-}
-.pr-flag-title{ font-size:1rem; font-weight:660; color:var(--ink); margin-bottom:.1rem; }
-.pr-flag-sub{ font-size:.87rem; color:var(--muted); margin-bottom:.5rem; }
-.pr-flag-violation{
-  font-size:.92rem; color:var(--ink); line-height:1.5; margin:.22rem 0;
-}
-.pr-flag-chips{ display:flex; flex-wrap:wrap; gap:.3rem .5rem; margin-top:.55rem; align-items:center; }
-.pr-flag-code{
-  display:inline-block; font-size:.74rem; font-weight:720; text-transform:uppercase;
-  letter-spacing:.05em; color:var(--amber); background:var(--amber-soft);
-  border:1px solid #E8CC88; border-radius:5px; padding:.05rem .38rem;
-}
-.pr-flag-code-label{ font-size:.82rem; color:var(--muted); margin-right:.35rem; }
-.pr-flag-note{
-  font-size:.82rem; color:var(--muted); margin-top:.5rem; padding-top:.4rem;
-  border-top:1px dashed #E8CC88;
-}
-
-/* CSV download button */
-[data-testid="stSidebar"] [data-testid="stDownloadButton"] button{
-  background:var(--accent); color:#fff; border:none; border-radius:11px;
-  font-weight:650; padding:.55rem 1rem; box-shadow:0 4px 14px rgba(221,122,91,.30);
-  width:100%;
-}
-[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:hover{
-  background:#C96846; color:#fff;
-}
-[data-testid="stSidebar"] [data-testid="stDownloadButton"] button p{
-  color:#fff; font-weight:650;
-}
+:root{{{theme_vars}
+  --f-sans:"Inter",system-ui,-apple-system,sans-serif;
+  --f-serif:"Lora",Georgia,serif;
+  --f-mono:ui-monospace,"Cascadia Code","Fira Code",monospace;
+  --radius:14px;--radius-sm:8px;
+}}
+html,body,.stApp,[data-testid="stAppViewContainer"],
+[data-testid="stMain"],[data-testid="stMainBlockContainer"]{{
+  background:var(--bg)!important;color:var(--ink);
+  font-family:var(--f-sans);
+  transition:background 0.35s ease,color 0.25s ease;
+}}
+[data-testid="stHeader"],[data-testid="stToolbar"],[data-testid="stDecoration"],
+#MainMenu,footer,[data-testid="manage-app-button"]{{display:none!important}}
+.block-container{{padding-top:2rem;padding-bottom:4rem;max-width:980px!important;margin:0 auto}}
+[data-testid="stSidebar"]{{
+  background:var(--bg2)!important;border-right:1px solid var(--border)!important;
+  transition:background 0.35s ease;
+}}
+[data-testid="stSidebar"] *{{color:var(--ink)}}
+[data-testid="stSidebar"] button[kind="primary"],
+[data-testid="stSidebar"] [data-testid="stDownloadButton"] button{{
+  background:var(--aqua)!important;color:#fff!important;border:none!important;
+  border-radius:var(--radius-sm)!important;font-weight:600!important;
+  box-shadow:0 2px 8px rgba(13,148,136,0.20)!important;
+}}
+[data-testid="stSidebar"] button[kind="primary"]:hover,
+[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:hover{{filter:brightness(0.92)}}
+[data-testid="stSidebar"] [data-testid="stDownloadButton"] button p{{color:#fff!important}}
+[data-testid="stTabs"] [role="tablist"]{{border-bottom:1px solid var(--border)!important;gap:0}}
+[data-testid="stTabs"] button[role="tab"]{{
+  font-family:var(--f-sans);font-size:14px;font-weight:500;
+  color:var(--ink3)!important;border-bottom:2px solid transparent!important;
+  padding:0.6rem 1.1rem!important;transition:color 0.2s,border-color 0.2s;
+}}
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"]{{
+  color:var(--ink)!important;border-bottom-color:var(--aqua)!important;
+}}
+.pr-hero h1{{
+  font-family:var(--f-serif);font-size:2rem;font-weight:700;
+  letter-spacing:-0.02em;color:var(--ink);margin:0 0 .4rem;
+}}
+.pr-hero p{{font-size:1.05rem;line-height:1.65;color:var(--ink2);margin:0;max-width:720px}}
+.pr-meta{{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:.5rem .9rem;margin:.4rem 0 1.2rem;
+  font-size:.88rem;color:var(--ink3);display:flex;gap:.5rem;align-items:center;
+}}
+.pr-meta .dot{{width:8px;height:8px;border-radius:50%;background:var(--aqua);flex:0 0 auto}}
+.pr-sec-h{{
+  font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink3);margin:1.1rem 0 .55rem;
+}}
+@keyframes cardReveal{{from{{opacity:0;transform:translateY(10px)}}to{{opacity:1;transform:translateY(0)}}}}
+details.pr-card{{
+  background:var(--surface);border:1px solid var(--border);
+  border-left:3px solid var(--aqua);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:.3rem 1.25rem;margin:0 0 .85rem;
+  transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease,background .35s ease;
+  animation:cardReveal .45s ease both;
+}}
+details.pr-card:hover:not([open]){{
+  transform:translateY(-2px);box-shadow:var(--shadow-open);border-color:var(--border-strong);
+}}
+details.pr-card[open]{{box-shadow:var(--shadow-open)}}
+details.pr-card.manual-entry{{border-left-color:var(--amber)}}
+details.pr-card>summary{{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:1rem;
+  padding:1rem .1rem;outline:none;
+}}
+details.pr-card>summary::-webkit-details-marker{{display:none}}
+.pr-chevron{{
+  color:var(--ink3);font-size:1.15rem;line-height:1;flex-shrink:0;
+  transition:transform .2s ease;margin-left:.2rem;
+}}
+details.pr-card[open] .pr-chevron{{transform:rotate(180deg)}}
+.pr-rank{{
+  flex:0 0 auto;min-width:44px;height:44px;border-radius:10px;
+  background:var(--aqua-soft);color:var(--aqua);font-weight:700;
+  font-family:var(--f-mono);display:flex;align-items:center;
+  justify-content:center;font-size:.95rem;
+}}
+details.pr-card.manual-entry .pr-rank{{background:var(--amber-soft);color:var(--amber)}}
+.pr-sum-main{{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:.2rem}}
+.pr-title{{
+  font-family:var(--f-serif);font-size:18px;font-weight:700;letter-spacing:-0.02em;
+  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}}
+.pr-sub{{
+  font-size:13px;font-weight:400;color:var(--ink3);
+  display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;
+}}
+.pr-avail-dot{{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--aqua);flex-shrink:0;
+}}
+.pr-avail-text{{color:var(--aqua);font-weight:500;font-size:13px}}
+.pr-sum-right{{
+  flex:0 0 auto;text-align:right;display:flex;flex-direction:column;
+  align-items:flex-end;gap:.28rem;
+}}
+.pr-verdict{{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.12em;white-space:nowrap;font-family:var(--f-sans);
+}}
+.pr-verdict.t5,.pr-verdict.t4{{color:var(--aqua)}}
+.pr-verdict.t3{{color:var(--ink2)}}
+.pr-verdict.t2,.pr-verdict.t1{{color:var(--ink3)}}
+.pr-flag-pin{{color:var(--amber);font-size:.9rem}}
+.pr-body{{padding:.15rem .1rem 1.1rem}}
+.pr-check{{
+  display:flex;align-items:baseline;gap:.7rem;padding:.28rem 0;
+  font-size:14.5px;line-height:1.65;color:var(--ink);
+}}
+.pr-check .ic{{
+  font-size:1rem;line-height:1.5;flex-shrink:0;width:1.1rem;
+  display:inline-block;text-align:center;
+}}
+.pr-check .ic.match{{color:var(--aqua);font-weight:700}}
+.pr-check .ic.miss{{color:var(--ink3)}}
+.pr-check.no{{color:var(--ink2)}}
+.pr-why-grid{{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin:.9rem 0 .6rem}}
+.pr-why{{
+  background:var(--surface2);border-radius:10px;
+  padding:.8rem .9rem;line-height:1.6;font-size:14px;
+}}
+.pr-why-label{{
+  font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:.35rem;
+}}
+.pr-why.good{{border-left:2px solid var(--aqua)}}
+.pr-why.good .pr-why-label{{color:var(--aqua)}}
+.pr-why.less{{border-left:2px solid var(--border-strong)}}
+.pr-flagbox{{
+  background:var(--amber-soft);border:1px solid rgba(180,83,9,0.18);
+  border-radius:10px;padding:.8rem .9rem;margin:.5rem 0;line-height:1.55;font-size:14px;
+}}
+.pr-flagbox-label{{
+  font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:.3rem;
+}}
+.pr-role{{margin:.5rem 0}}
+.pr-role .rh{{font-size:14px;font-weight:600;color:var(--ink)}}
+.pr-role .rd{{font-size:13.5px;color:var(--ink2);line-height:1.6;margin-top:.15rem}}
+details.pr-tech{{margin-top:1rem;border-top:1px solid var(--border);padding-top:.6rem}}
+details.pr-tech>summary{{
+  list-style:none;cursor:pointer;font-size:.9rem;font-weight:600;
+  color:var(--aqua);padding:.3rem 0;
+}}
+details.pr-tech>summary::-webkit-details-marker{{display:none}}
+details.pr-tech>summary::before{{content:"🔍  "}}
+.pr-tech-body{{font-size:.9rem;color:var(--ink);line-height:1.6}}
+.pr-kv{{display:grid;grid-template-columns:max-content 1fr;gap:.2rem 1rem;margin:.4rem 0}}
+.pr-kv .k{{color:var(--ink3)}}
+.pr-tech-body code{{
+  background:var(--surface2);padding:.05rem .35rem;border-radius:4px;
+  font-size:.84rem;font-family:var(--f-mono);
+}}
+.pr-tech-h{{
+  font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:.85rem 0 .35rem;
+}}
+.pr-beh-grid{{
+  display:grid;grid-template-columns:max-content 1fr;
+  gap:.35rem .9rem;margin:.35rem 0;align-items:baseline;
+}}
+.pr-beh-k{{color:var(--ink3);font-size:.88rem;white-space:nowrap}}
+.pr-beh-v{{font-size:.88rem}}
+.pr-chips{{display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0 .65rem}}
+.pr-skill-chip{{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:.22rem .6rem;font-size:.83rem;color:var(--ink2);line-height:1.45;
+}}
+.pr-assess-chip{{
+  border-radius:var(--radius-sm);padding:.22rem .6rem;font-size:.83rem;
+  line-height:1.45;display:inline-flex;align-items:center;gap:.4rem;
+}}
+.pr-assess-chip.hi{{background:var(--aqua-soft);border:1px solid rgba(13,148,136,0.25);color:var(--aqua)}}
+.pr-assess-chip.md{{background:var(--surface2);border:1px solid var(--border);color:var(--ink2)}}
+.pr-assess-chip.lo{{background:var(--amber-soft);border:1px solid rgba(180,83,9,0.2);color:var(--amber)}}
+.pr-assess-chip .as-band{{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}}
+details.pr-overflow-det{{margin-top:.35rem}}
+details.pr-overflow-det>summary{{
+  list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:.22rem .6rem;font-size:.83rem;color:var(--aqua);font-weight:600;line-height:1.45;
+}}
+details.pr-overflow-det>summary::-webkit-details-marker{{display:none}}
+details.pr-overflow-det>summary::after{{content:"▸";font-size:.76rem;opacity:.7}}
+details.pr-overflow-det[open]>summary::after{{content:"▾"}}
+.pr-overflow-body{{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}}
+.pr-flag-card{{
+  background:var(--surface);border:1px solid var(--border);
+  border-left:3px solid var(--amber);border-radius:10px;
+  padding:.75rem 1rem;margin:0 0 .65rem;
+}}
+.pr-flag-title{{
+  font-family:var(--f-serif);font-size:15px;font-weight:700;
+  color:var(--ink);margin-bottom:.12rem;
+}}
+.pr-flag-sub{{font-size:12.5px;color:var(--ink3);margin-bottom:.55rem}}
+.pr-flag-violation{{
+  display:flex;align-items:center;gap:.5rem;
+  font-size:13.5px;color:var(--ink);line-height:1.5;margin:.25rem 0;
+}}
+.pr-flag-dot{{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--amber);flex-shrink:0;
+}}
+.pr-flag-chips{{display:flex;flex-wrap:wrap;gap:.3rem .5rem;margin-top:.6rem;align-items:baseline}}
+.pr-flag-code{{
+  display:inline-block;font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--amber);background:var(--amber-soft);
+  border:1px solid rgba(180,83,9,0.2);border-radius:4px;padding:.04rem .36rem;
+}}
+.pr-flag-code-label{{font-family:var(--f-serif);font-size:12px;color:var(--ink3);margin-right:.35rem}}
+.pr-flag-note{{
+  font-size:11px;letter-spacing:.04em;color:var(--ink3);
+  margin-top:.55rem;padding-top:.4rem;border-top:1px solid var(--border);
+}}
 </style>
+<script>
+(function(){{
+  function stagger(){{
+    document.querySelectorAll('details.pr-card').forEach(function(el,i){{
+      if(!el.style.animationDelay)el.style.animationDelay=(Math.min(i,11)*0.04)+'s';
+    }});
+  }}
+  setTimeout(stagger,60);setTimeout(stagger,250);
+}})();
+</script>
 """
 
 # ─── Meta helpers ─────────────────────────────────────────────────────────────
@@ -637,56 +709,91 @@ def tech_html(row: dict) -> str:
 
 
 def candidate_card(row: dict, open_default: bool, extra_class: str = "") -> str:
-    rank    = row["rank"]
-    prof    = row.get("profile", {})
-    title   = html.escape(prof.get("current_title", "Candidate"))
-    yoe     = float(prof.get("years_of_experience", 0) or 0)
-    company = html.escape(current_company(row))
+    rank      = row["rank"]
+    prof      = row.get("profile", {})
+    title     = html.escape(prof.get("current_title", "Candidate"))
+    yoe       = float(prof.get("years_of_experience", 0) or 0)
+    loc       = html.escape((prof.get("location") or "").strip())
+    company   = html.escape(current_company(row))
     label, filled = match_level(rank)
-    flagged = bool(row.get("flags"))
+    flagged   = bool(row.get("flags"))
     is_manual = bool(row.get("_manual"))
 
     rank_label = f"~#{rank}" if is_manual else f"#{rank}"
-    flag_pin = '<span class="pr-flag-pin" title="Needs verifying">⚠️</span>' if flagged else ""
+    flag_pin   = '<span class="pr-flag-pin" title="Needs verifying">⚠</span>' if flagged else ""
+
+    # Line 2: N yrs · Company · Location [dot + availability]
+    sub_parts = [f"{yoe:.0f} yrs"]
+    if company and company != "—":
+        sub_parts.append(company)
+    if loc:
+        sub_parts.append(loc)
+    sub_text = " · ".join(sub_parts)
+    avail = availability_text(row)
+    avail_html = (
+        f' · <span class="pr-avail-dot"></span>'
+        f'<span class="pr-avail-text">{html.escape(avail)}</span>'
+    ) if avail else ""
+
     summary = (
         f'<summary>'
         f'<span class="pr-rank">{rank_label}</span>'
-        f'<span class="pr-sum-main"><span class="pr-title">{title}</span>'
-        f'<span class="pr-sub">{yoe:.0f} yrs experience · {company}</span></span>'
-        f'<span class="pr-sum-match"><span class="pr-dots">{dots_html(filled)}</span>'
-        f'<span class="pr-mlabel">{label}</span></span>'
-        f'{flag_pin}</summary>'
+        f'<span class="pr-sum-main">'
+        f'<span class="pr-title">{title}</span>'
+        f'<span class="pr-sub">{html.escape(sub_text)}{avail_html}</span>'
+        f'</span>'
+        f'<span class="pr-sum-right">'
+        f'<span class="pr-verdict t{filled}">{html.escape(label.upper())}</span>'
+        f'{flag_pin}'
+        f'</span>'
+        f'<span class="pr-chevron">⌄</span>'
+        f'</summary>'
     )
-
-    chips = [f'<span class="pr-chip">💼 {title}</span>',
-             f'<span class="pr-chip">🗓 {yoe:.0f} years</span>',
-             f'<span class="pr-chip">🏢 {company}</span>']
-    avail = availability_text(row)
-    if avail:
-        chips.append(f'<span class="pr-chip avail">🟢 {avail}</span>')
-    if is_manual:
-        chips.append(f'<span class="pr-chip avail" style="background:var(--sage-soft);color:var(--sage)">✍️ Manual entry</span>')
-    facts = '<div class="pr-facts">' + "".join(chips) + '</div>'
 
     checks = ['<div class="pr-sec-h">What they\'ve actually done</div>']
     for dim, text in DONE_ITEMS:
         if has(row, dim):
-            checks.append(f'<div class="pr-check"><span class="ic">✅</span><span>{html.escape(text)}</span></div>')
+            checks.append(
+                f'<div class="pr-check">'
+                f'<span class="ic match">›</span>'
+                f'<span>{html.escape(text)}</span></div>'
+            )
         else:
-            checks.append(f'<div class="pr-check no"><span class="ic">➖</span><span>{html.escape(text)}</span></div>')
+            checks.append(
+                f'<div class="pr-check no">'
+                f'<span class="ic miss">–</span>'
+                f'<span>{html.escape(text)}</span></div>'
+            )
 
-    why_good = (f'<div class="pr-why good"><b>Why this person</b>{html.escape(why_person_plain(row))}</div>')
-    why_less = (f'<div class="pr-why less"><b>Why not ranked higher</b>{html.escape(why_not_higher_plain(row))}</div>')
+    why_good = (
+        f'<div class="pr-why good">'
+        f'<div class="pr-why-label">Why this person</div>'
+        f'{html.escape(why_person_plain(row))}'
+        f'</div>'
+    )
+    why_less = (
+        f'<div class="pr-why less">'
+        f'<div class="pr-why-label">Why not ranked higher</div>'
+        f'{html.escape(why_not_higher_plain(row))}'
+        f'</div>'
+    )
+    why_grid = f'<div class="pr-why-grid">{why_good}{why_less}</div>'
+
     ftext    = flag_text(row)
-    flag_box = (f'<div class="pr-flagbox"><b>⚠️ Worth verifying</b>{html.escape(ftext)}</div>' if ftext else "")
-    tech     = (f'<details class="pr-tech"><summary>See the details</summary>{tech_html(row)}</details>')
+    flag_box = (
+        f'<div class="pr-flagbox">'
+        f'<div class="pr-flagbox-label">Worth verifying</div>'
+        f'{html.escape(ftext)}'
+        f'</div>'
+    ) if ftext else ""
+    tech = f'<details class="pr-tech"><summary>See the details</summary>{tech_html(row)}</details>'
 
     open_attr = " open" if open_default else ""
     cls_str   = ("pr-card " + extra_class).strip()
     return (
         f'<details class="{cls_str}"{open_attr}>'
         f'{summary}'
-        f'<div class="pr-body">{facts}{"".join(checks)}{why_good}{why_less}{flag_box}'
+        f'<div class="pr-body">{"".join(checks)}{why_grid}{flag_box}'
         f'{career_html(row)}{tech}</div></details>'
     )
 
@@ -707,7 +814,10 @@ def flagged_card_html(entry: dict) -> str:
     reasons = entry.get("reasons", [])
 
     violations = "".join(
-        f'<div class="pr-flag-violation">⚠️ {html.escape(r.get("plain", ""))}</div>'
+        f'<div class="pr-flag-violation">'
+        f'<span class="pr-flag-dot"></span>'
+        f'{html.escape(r.get("plain", ""))}'
+        f'</div>'
         for r in reasons
     )
 
@@ -872,7 +982,7 @@ def _score_manual(record: dict, base_candidates: list[dict]) -> dict:
 # Render
 # ═══════════════════════════════════════════════════════════════════════════════
 
-st.markdown(CSS, unsafe_allow_html=True)
+st.markdown(_css(st.session_state.get("dark_mode", False)), unsafe_allow_html=True)
 
 # ── Pipeline execution ─────────────────────────────────────────────────────────
 if st.session_state.get("pipeline_action") == "rerank":
@@ -913,8 +1023,16 @@ else:
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 🌿 ProofRank")
-    st.caption("Candidate shortlist for Redrob AI")
+    _title_col, _dm_col = st.columns([4, 1])
+    with _title_col:
+        st.markdown("### 🌿 ProofRank")
+        st.caption("Candidate shortlist for Redrob AI")
+    with _dm_col:
+        st.write("")
+        _dm_icon = "☀️" if st.session_state.get("dark_mode", False) else "🌙"
+        if st.button(_dm_icon, key="dm_toggle", help="Toggle dark / light mode"):
+            st.session_state["dark_mode"] = not st.session_state.get("dark_mode", False)
+            st.rerun()
     st.divider()
 
     # View filters
