@@ -136,11 +136,15 @@ def _parse_date(s: str | None) -> date | None:
     if not s:
         return None
     s = s.strip()
-    for fmt in ("%Y-%m-%d", "%Y-%m", "%Y"):
-        try:
-            return datetime.strptime(s, fmt).date()
-        except ValueError:
-            continue
+    try:
+        if len(s) >= 10 and s[4] == '-' and s[7] == '-':
+            return date(int(s[:4]), int(s[5:7]), int(s[8:10]))
+        if len(s) >= 7 and s[4] == '-':
+            return date(int(s[:4]), int(s[5:7]), 1)
+        if len(s) == 4 and s.isdigit():
+            return date(int(s), 1, 1)
+    except (ValueError, IndexError):
+        pass
     return None
 
 
