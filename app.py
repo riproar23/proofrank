@@ -965,8 +965,10 @@ with st.sidebar:
     _active_ds = Path(_active_ds_str)
     jsonl_present = _active_ds.exists()
     if jsonl_present:
-        sz_mb = _active_ds.stat().st_size / 1_048_576
-        st.caption(f"📄 {_active_ds.name} ({sz_mb:.0f} MB)")
+        _ads_sz = _active_ds.stat().st_size
+        _ads_size = (f"{_ads_sz / 1024:.0f} KB" if _ads_sz < 1_048_576
+                     else f"{_ads_sz / 1_048_576:.0f} MB")
+        st.caption(f"📄 {_active_ds.name} ({_ads_size})")
     else:
         st.caption("📄 No dataset file found")
 
@@ -990,46 +992,68 @@ with st.sidebar:
 
     with st.expander("📤  Upload a new dataset"):
         st.markdown(
-            "Upload a `.jsonl` or `.jsonl.gz` file of candidates. "
-            "It will be validated, saved, and ranked.\n\n"
+            "Upload one or more `.jsonl` or `.jsonl.gz` files. "
+            "Each is validated immediately; then choose to **Save** it "
+            "(adds to Manage datasets) or **Save & Rank** (saves and re-ranks right away).\n\n"
             "**Required fields per record:** `candidate_id`, `profile`, "
-            "`career_history`, `skills`, `redrob_signals`\n\n"
-            "_Large files (>200 MB) may take a moment to upload._"
+            "`career_history`, `skills`, `redrob_signals`"
         )
-        uploaded = st.file_uploader(
-            "Choose a candidate file",
+        _uf_list = st.file_uploader(
+            "Choose candidate files",
             type=["jsonl", "gz"],
             key="dataset_upload",
             label_visibility="collapsed",
+            accept_multiple_files=True,
         )
-        if uploaded is not None:
-            # Validate once per file (keyed by name + size so re-uploads re-validate)
-            _vkey = f"{uploaded.name}:{uploaded.size}"
-            if st.session_state.get("_upload_vkey") != _vkey:
-                uploaded.seek(0)
-                _sample = uploaded.read(1_048_576)
-                uploaded.seek(0)
-                _verr = validate_jsonl_bytes(_sample, uploaded.name)
-                st.session_state["_upload_vkey"] = _vkey
-                st.session_state["_upload_verr"] = _verr
-            _verr = st.session_state.get("_upload_verr")
-            if _verr:
-                st.error(f"⚠️ Invalid file: {_verr}")
-            else:
-                st.success(f"✅ **{uploaded.name}** looks valid.")
-                if st.button(
-                    "⬆️  Upload & Rank",
-                    type="primary",
-                    use_container_width=True,
-                    key="upload_rank_btn",
-                ):
-                    with st.spinner("Saving to disk…"):
-                        save_upload_to_disk(uploaded, UPLOADED_JSONL_PATH)
-                    st.session_state["_upload_vkey"] = None
-                    st.session_state["active_dataset"] = str(UPLOADED_JSONL_PATH)
-                    st.session_state["pipeline_action"] = "rerank"
-                    st.session_state["pipeline_jsonl"] = str(UPLOADED_JSONL_PATH)
-                    st.rerun()
+        for _uf in (_uf_list or []):
+            _uf_sz = _uf.size
+            _uf_size = (f"{_uf_sz / 1024:.0f} KB" if _uf_sz < 1_048_576
+                        else f"{_uf_sz / 1_048_576:.0f} MB")
+            # Destination filename (strip .gz; protect candidates.jsonl)
+            _uf_dstname = _uf.name[:-3] if _uf.name.endswith(".gz") else _uf.name
+            if _uf_dstname == "candidates.jsonl":
+                _uf_dstname = "upload_candidates.jsonl"
+            _uf_dst = ROOT / "data" / _uf_dstname
+            # Validate once per file (keyed by name+size)
+            _uf_vkey = f"{_uf.name}:{_uf_sz}"
+            if st.session_state.get(f"_uf_vk_{_uf.name}") != _uf_vkey:
+                _uf.seek(0)
+                _uf_sample = _uf.read(1_048_576)
+                _uf.seek(0)
+                _uf_verr = validate_jsonl_bytes(_uf_sample, _uf.name)
+                st.session_state[f"_uf_vk_{_uf.name}"] = _uf_vkey
+                st.session_state[f"_uf_ve_{_uf.name}"] = _uf_verr
+            _uf_verr = st.session_state.get(f"_uf_ve_{_uf.name}")
+            # Row layout: info | Save | Save & Rank
+            _ufc1, _ufc2, _ufc3 = st.columns([5, 2, 2])
+            with _ufc1:
+                _uf_icon = "❌" if _uf_verr else "✅"
+                _uf_sub = (
+                    f"<span style='color:#C0392B;font-size:.82rem'>{html.escape(_uf_verr)}</span>"
+                    if _uf_verr else
+                    f"<span style='color:var(--muted);font-size:.82rem'>→ data/{_uf_dstname}</span>"
+                )
+                st.markdown(
+                    f"{_uf_icon} **{_uf.name}** ({_uf_size})  \n{_uf_sub}",
+                    unsafe_allow_html=True,
+                )
+            if not _uf_verr:
+                with _ufc2:
+                    if st.button("Save to data/", key=f"uf_save_{_uf.name}",
+                                 use_container_width=True):
+                        with st.spinner(f"Saving {_uf.name}…"):
+                            save_upload_to_disk(_uf, _uf_dst)
+                        st.rerun()
+                with _ufc3:
+                    if st.button("Save & Rank", key=f"uf_rank_{_uf.name}",
+                                 type="primary", use_container_width=True):
+                        with st.spinner(f"Saving {_uf.name}…"):
+                            save_upload_to_disk(_uf, _uf_dst)
+                        st.session_state[f"_uf_vk_{_uf.name}"] = None
+                        st.session_state["active_dataset"] = str(_uf_dst)
+                        st.session_state["pipeline_action"] = "rerank"
+                        st.session_state["pipeline_jsonl"] = str(_uf_dst)
+                        st.rerun()
 
     st.write("")
     with st.expander("🗂  Manage datasets"):
@@ -1045,7 +1069,9 @@ with st.sidebar:
                 _ds_active = _ds.resolve() == _mgr_active.resolve()
                 _ds_default = _ds.name == "candidates.jsonl"
                 try:
-                    _ds_mb = f"{_ds.stat().st_size / 1_048_576:.0f} MB"
+                    _ds_sz = _ds.stat().st_size
+                    _ds_mb = (f"{_ds_sz / 1024:.0f} KB" if _ds_sz < 1_048_576
+                              else f"{_ds_sz / 1_048_576:.0f} MB")
                 except Exception:
                     _ds_mb = ""
                 _c1, _c2, _c3 = st.columns([5, 2, 1])
