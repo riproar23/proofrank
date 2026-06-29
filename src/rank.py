@@ -27,6 +27,7 @@ candidate over a materially stronger one — the smallest meaningful evidence ga
 import argparse
 import csv
 import heapq
+import json
 import subprocess
 import sys
 import time
@@ -205,6 +206,84 @@ def detect_honeypot(record: dict) -> bool:
     if total_months > 1.4 * career_len_months + 18:
         return True
     return False
+
+
+def _honeypot_reasons(record: dict) -> list[dict]:
+    """
+    Check ALL honeypot rules (no short-circuit) and return plain-language reasons.
+    Only called on confirmed honeypots, so the extra pass is negligible.
+    """
+    reasons: list[dict] = []
+    yoe = float(record.get("profile", {}).get("years_of_experience") or 0)
+    career_len_months = yoe * 12.0
+
+    h1_count = 0
+    for sk in record.get("skills", []):
+        prof = sk.get("proficiency")
+        dur = sk.get("duration_months") or 0
+        name = sk.get("name") or "Unknown skill"
+        if prof in ("expert", "advanced") and dur == 0:
+            h1_count += 1
+            if h1_count <= 3:
+                reasons.append({
+                    "code": "H1",
+                    "plain": f'Claims {prof} in "{name}" but records 0 months of usage',
+                })
+        if prof == "expert" and dur > career_len_months + 24:
+            reasons.append({
+                "code": "H2b",
+                "plain": (
+                    f'Expert in "{name}" for {dur} months, '
+                    f'but entire career spans only {int(career_len_months)} months '
+                    f'({yoe:.0f} yrs stated experience)'
+                ),
+            })
+    if h1_count > 3:
+        reasons.append({
+            "code": "H1",
+            "plain": f"{h1_count} expert/advanced skills claimed with 0 months of usage recorded",
+        })
+
+    career = record.get("career_history", [])
+    total_months = 0
+    h3_count = 0
+    for role in career:
+        dm = role.get("duration_months") or 0
+        total_months += dm
+        sd = _parse_date(role.get("start_date"))
+        ed = _parse_date(role.get("end_date")) if role.get("end_date") else (TODAY if role.get("is_current") else None)
+        if sd and ed and ed >= sd:
+            actual = (ed.year - sd.year) * 12 + (ed.month - sd.month)
+            diff = abs(actual - dm)
+            if diff > 4:
+                h3_count += 1
+                if h3_count <= 2:
+                    rtitle = role.get("title") or "a role"
+                    company = role.get("company") or "a company"
+                    reasons.append({
+                        "code": "H3",
+                        "plain": (
+                            f'"{rtitle}" at {company}: dates span {actual} months '
+                            f'but profile records {dm} months (off by {diff} months)'
+                        ),
+                    })
+    if h3_count > 2:
+        reasons.append({
+            "code": "H3",
+            "plain": f"{h3_count} roles have employment dates inconsistent with recorded durations",
+        })
+
+    if total_months > 1.4 * career_len_months + 18 and career_len_months > 0:
+        ratio = total_months / career_len_months
+        reasons.append({
+            "code": "H6",
+            "plain": (
+                f"Total career history ({total_months} months) is "
+                f"{ratio:.1f}× the stated {yoe:.0f} years of experience"
+            ),
+        })
+
+    return reasons
 
 
 def is_keyword_stuffer(record: dict) -> bool:
@@ -653,6 +732,7 @@ def main() -> int:
     heap: list[tuple[float, str]] = []
     payload: dict[str, dict] = {}   # cid → record
     info_by_cid: dict[str, dict] = {}
+    flagged_list: list[dict] = []
     n_total = 0
     n_honeypot = 0
 
@@ -673,6 +753,17 @@ def main() -> int:
                 is_hp = info["honeypot"]
             if is_hp:
                 n_honeypot += 1
+                profile = record.get("profile", {})
+                reasons = _honeypot_reasons(record)
+                flagged_list.append({
+                    "candidate_id": cid,
+                    "title": profile.get("current_title") or "Unknown",
+                    "years_of_experience": float(profile.get("years_of_experience") or 0),
+                    "location": profile.get("location") or "",
+                    "flags": list({r["code"] for r in reasons}),
+                    "reasons": reasons,
+                    "severity": len(reasons),
+                })
 
             if len(heap) < 100:
                 heapq.heappush(heap, (score, cid))
@@ -731,6 +822,14 @@ def main() -> int:
             print(f"  {rank:>2}. {cid}  {score:>9.2f}  ev={info['ev_score']:>5.0f}  "
                   f"{title} ({yoe:.1f}y)")
             print(f"       -> {', '.join(reasons)}")
+
+    # Write flagged.json sidecar (top-50 most egregious, by violation count)
+    if args.mode == "final":
+        flagged_sorted = sorted(flagged_list, key=lambda x: -x["severity"])[:50]
+        flagged_path = output_path.parent / "flagged.json"
+        flagged_path.write_text(json.dumps(flagged_sorted, indent=2, ensure_ascii=False),
+                                encoding="utf-8")
+        print(f"Flagged profiles: {len(flagged_list)} total, wrote top {len(flagged_sorted)} to {flagged_path}")
 
     print("\nRunning data/validate_submission.py ...")
     res = subprocess.run([sys.executable, "data/validate_submission.py", str(output_path)],

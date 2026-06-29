@@ -1,0 +1,1275 @@
+[
+  {
+    "candidate_id": "CAND_0001610",
+    "title": "Machine Learning Engineer",
+    "years_of_experience": 3.0,
+    "location": "Trivandrum, Kerala",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Haystack\" for 67 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Deep Learning\" for 84 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Pinecone\" for 72 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"scikit-learn\" for 64 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Fine-tuning LLMs\" for 92 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"PyTorch\" for 61 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"FAISS\" for 85 months, but entire career spans only 36 months (3 yrs stated experience)"
+      }
+    ],
+    "severity": 7
+  },
+  {
+    "candidate_id": "CAND_0093547",
+    "title": "Senior Machine Learning Engineer",
+    "years_of_experience": 2.9,
+    "location": "Coimbatore, Tamil Nadu",
+    "flags": [
+      "H2b",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"RAG\" for 94 months, but entire career spans only 34 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"PEFT\" for 93 months, but entire career spans only 34 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Haystack\" for 86 months, but entire career spans only 34 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Milvus\" for 70 months, but entire career spans only 34 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Weaviate\" for 62 months, but entire career spans only 34 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Information Retrieval\" for 70 months, but entire career spans only 34 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (74 months) is 2.1× the stated 3 years of experience"
+      }
+    ],
+    "severity": 7
+  },
+  {
+    "candidate_id": "CAND_0042506",
+    "title": "Search Engineer",
+    "years_of_experience": 4.2,
+    "location": "Mumbai, Maharashtra",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"TensorFlow\" for 83 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Information Retrieval\" for 88 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Deep Learning\" for 87 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"FAISS\" for 81 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"NLP\" for 86 months, but entire career spans only 50 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 5
+  },
+  {
+    "candidate_id": "CAND_0009837",
+    "title": "Senior Data Scientist",
+    "years_of_experience": 4.3,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"TensorFlow\" for 82 months, but entire career spans only 51 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Learning to Rank\" for 93 months, but entire career spans only 51 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"QLoRA\" for 76 months, but entire career spans only 51 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Python\" for 83 months, but entire career spans only 51 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0016000",
+    "title": "Full Stack Developer",
+    "years_of_experience": 2.0,
+    "location": "Sydney",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"TypeScript\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Go\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Docker\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0022812",
+    "title": "Applied ML Engineer",
+    "years_of_experience": 4.5,
+    "location": "Coimbatore, Tamil Nadu",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Pinecone\" for 89 months, but entire career spans only 54 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Qdrant\" for 91 months, but entire career spans only 54 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LLMs\" for 85 months, but entire career spans only 54 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Sentence Transformers\" for 86 months, but entire career spans only 54 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0030348",
+    "title": "Machine Learning Engineer",
+    "years_of_experience": 4.5,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LlamaIndex\" for 96 months, but entire career spans only 54 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"pgvector\" for 94 months, but entire career spans only 54 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Haystack\" for 95 months, but entire career spans only 54 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Python\" for 94 months, but entire career spans only 54 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0033817",
+    "title": "HR Manager",
+    "years_of_experience": 13.3,
+    "location": "Berlin",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"JavaScript\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"BigQuery\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Six Sigma\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "4 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0046649",
+    "title": "Business Analyst",
+    "years_of_experience": 3.8,
+    "location": "Coimbatore, Tamil Nadu",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"SAP\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Node.js\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"gRPC\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0046689",
+    "title": "Business Analyst",
+    "years_of_experience": 2.3,
+    "location": "Toronto",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Node.js\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"SQL\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"gRPC\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "4 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0056983",
+    "title": "Accountant",
+    "years_of_experience": 12.3,
+    "location": "Ahmedabad, Gujarat",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Rust\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Next.js\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Redis\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0060642",
+    "title": "Frontend Engineer",
+    "years_of_experience": 3.0,
+    "location": "Sydney",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Milvus\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Agile\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Azure\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0061722",
+    "title": "Software Engineer",
+    "years_of_experience": 6.8,
+    "location": "London",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Terraform\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"GANs\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Milvus\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0063888",
+    "title": ".NET Developer",
+    "years_of_experience": 2.4,
+    "location": "Mumbai, Maharashtra",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Project Management\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Accounting\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"MLOps\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0064270",
+    "title": "Applied ML Engineer",
+    "years_of_experience": 4.2,
+    "location": "Pune, Maharashtra",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Learning to Rank\" for 88 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Hugging Face Transformers\" for 96 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"BM25\" for 90 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Haystack\" for 94 months, but entire career spans only 50 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0065096",
+    "title": "Civil Engineer",
+    "years_of_experience": 6.7,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"ETL\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Tally\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Flask\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "4 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0070429",
+    "title": "Software Engineer",
+    "years_of_experience": 8.1,
+    "location": "Indore, Madhya Pradesh",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"MLOps\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Figma\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Accounting\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0072379",
+    "title": "Content Writer",
+    "years_of_experience": 3.8,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Azure\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Redux\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Illustrator\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "4 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0073853",
+    "title": "Operations Manager",
+    "years_of_experience": 8.0,
+    "location": "Dubai",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"CI/CD\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Marketing\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"GCP\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "5 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0076831",
+    "title": "Search Engineer",
+    "years_of_experience": 4.0,
+    "location": "Delhi, Delhi",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LLMs\" for 91 months, but entire career spans only 48 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Milvus\" for 84 months, but entire career spans only 48 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"NLP\" for 79 months, but entire career spans only 48 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Fine-tuning LLMs\" for 89 months, but entire career spans only 48 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0095480",
+    "title": ".NET Developer",
+    "years_of_experience": 2.3,
+    "location": "Mumbai, Maharashtra",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Agile\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"React\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Snowflake\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "4 expert/advanced skills claimed with 0 months of usage recorded"
+      }
+    ],
+    "severity": 4
+  },
+  {
+    "candidate_id": "CAND_0003582",
+    "title": "Mobile Developer",
+    "years_of_experience": 8.2,
+    "location": "Kolkata, West Bengal",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"MLflow\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Photoshop\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Content Writing\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0015578",
+    "title": "AI Engineer",
+    "years_of_experience": 5.4,
+    "location": "Delhi, Delhi",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Embeddings\" for 94 months, but entire career spans only 64 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Pinecone\" for 90 months, but entire career spans only 64 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"FAISS\" for 92 months, but entire career spans only 64 months (5 yrs stated experience)"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0019480",
+    "title": "NLP Engineer",
+    "years_of_experience": 2.8,
+    "location": "Chennai, Tamil Nadu",
+    "flags": [
+      "H2b",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LLMs\" for 82 months, but entire career spans only 33 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Milvus\" for 58 months, but entire career spans only 33 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (87 months) is 2.6× the stated 3 years of experience"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0020877",
+    "title": "Applied ML Engineer",
+    "years_of_experience": 5.1,
+    "location": "Gurgaon, Haryana",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LlamaIndex\" for 94 months, but entire career spans only 61 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Deep Learning\" for 91 months, but entire career spans only 61 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"scikit-learn\" for 96 months, but entire career spans only 61 months (5 yrs stated experience)"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0033972",
+    "title": "QA Engineer",
+    "years_of_experience": 6.0,
+    "location": "Coimbatore, Tamil Nadu",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Airflow\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"OpenCV\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Figma\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0036839",
+    "title": "Operations Manager",
+    "years_of_experience": 8.1,
+    "location": "Ahmedabad, Gujarat",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"SAP\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"GCP\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Rust\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0037000",
+    "title": "Search Engineer",
+    "years_of_experience": 2.7,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H2b",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LangChain\" for 87 months, but entire career spans only 32 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"FAISS\" for 77 months, but entire career spans only 32 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (75 months) is 2.3× the stated 3 years of experience"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0039521",
+    "title": "Search Engineer",
+    "years_of_experience": 3.0,
+    "location": "Coimbatore, Tamil Nadu",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Hugging Face Transformers\" for 68 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Weaviate\" for 88 months, but entire career spans only 36 months (3 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Haystack\" for 74 months, but entire career spans only 36 months (3 yrs stated experience)"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0040887",
+    "title": "Machine Learning Engineer",
+    "years_of_experience": 4.7,
+    "location": "Toronto",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LoRA\" for 85 months, but entire career spans only 56 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Python\" for 84 months, but entire career spans only 56 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Milvus\" for 81 months, but entire career spans only 56 months (5 yrs stated experience)"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0042245",
+    "title": "Business Analyst",
+    "years_of_experience": 7.9,
+    "location": "Trivandrum, Kerala",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Databricks\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"BentoML\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Vue.js\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0048740",
+    "title": "HR Manager",
+    "years_of_experience": 9.9,
+    "location": "Kochi, Kerala",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"gRPC\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Angular\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Content Writing\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0055792",
+    "title": ".NET Developer",
+    "years_of_experience": 9.8,
+    "location": "Vizag, Andhra Pradesh",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Scrum\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"TTS\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"LoRA\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0057701",
+    "title": "Recommendation Systems Engineer",
+    "years_of_experience": 4.1,
+    "location": "Chandigarh, Chandigarh",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Prompt Engineering\" for 76 months, but entire career spans only 49 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Python\" for 76 months, but entire career spans only 49 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Learning to Rank\" for 77 months, but entire career spans only 49 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0065195",
+    "title": "Search Engineer",
+    "years_of_experience": 5.1,
+    "location": "Kolkata, West Bengal",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"QLoRA\" for 93 months, but entire career spans only 61 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Elasticsearch\" for 89 months, but entire career spans only 61 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Qdrant\" for 94 months, but entire career spans only 61 months (5 yrs stated experience)"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0075574",
+    "title": "Machine Learning Engineer",
+    "years_of_experience": 5.7,
+    "location": "Bangalore, Karnataka",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"OpenSearch\" for 94 months, but entire career spans only 68 months (6 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"scikit-learn\" for 93 months, but entire career spans only 68 months (6 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Elasticsearch\" for 94 months, but entire career spans only 68 months (6 yrs stated experience)"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0095140",
+    "title": "Backend Engineer",
+    "years_of_experience": 5.0,
+    "location": "Toronto",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Kafka\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"QLoRA\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"CNN\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0095317",
+    "title": "HR Manager",
+    "years_of_experience": 7.0,
+    "location": "Toronto",
+    "flags": [
+      "H1"
+    ],
+    "reasons": [
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Webpack\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"Figma\" but records 0 months of usage"
+      },
+      {
+        "code": "H1",
+        "plain": "Claims expert in \"dbt\" but records 0 months of usage"
+      }
+    ],
+    "severity": 3
+  },
+  {
+    "candidate_id": "CAND_0007353",
+    "title": "Frontend Engineer",
+    "years_of_experience": 9.9,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H3",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H3",
+        "plain": "\"Frontend Engineer\" at Wayne Enterprises: dates span 33 months but profile records 166 months (off by 133 months)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (251 months) is 2.1× the stated 10 years of experience"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0008960",
+    "title": "Graphic Designer",
+    "years_of_experience": 10.3,
+    "location": "Mumbai, Maharashtra",
+    "flags": [
+      "H3",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H3",
+        "plain": "\"Graphic Designer\" at Stark Industries: dates span 21 months but profile records 171 months (off by 150 months)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (271 months) is 2.2× the stated 10 years of experience"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0010294",
+    "title": ".NET Developer",
+    "years_of_experience": 8.0,
+    "location": "Bangalore, Karnataka",
+    "flags": [
+      "H3",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H3",
+        "plain": "\".NET Developer\" at Mphasis: dates span 19 months but profile records 144 months (off by 125 months)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (220 months) is 2.3× the stated 8 years of experience"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0012957",
+    "title": "Search Engineer",
+    "years_of_experience": 4.9,
+    "location": "Chennai, Tamil Nadu",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Machine Learning\" for 91 months, but entire career spans only 58 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Python\" for 91 months, but entire career spans only 58 months (5 yrs stated experience)"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0018515",
+    "title": "Marketing Manager",
+    "years_of_experience": 8.5,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H3",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H3",
+        "plain": "\"Marketing Manager\" at Initech: dates span 39 months but profile records 150 months (off by 111 months)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (211 months) is 2.1× the stated 8 years of experience"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0020708",
+    "title": "Search Engineer",
+    "years_of_experience": 4.2,
+    "location": "Indore, Madhya Pradesh",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Learning to Rank\" for 75 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Fine-tuning LLMs\" for 80 months, but entire career spans only 50 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0030031",
+    "title": "AI Engineer",
+    "years_of_experience": 5.7,
+    "location": "Trivandrum, Kerala",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"NLP\" for 94 months, but entire career spans only 68 months (6 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LoRA\" for 95 months, but entire career spans only 68 months (6 yrs stated experience)"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0030827",
+    "title": "Senior Data Scientist",
+    "years_of_experience": 5.4,
+    "location": "Singapore",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LangChain\" for 96 months, but entire career spans only 64 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Prompt Engineering\" for 94 months, but entire career spans only 64 months (5 yrs stated experience)"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0032807",
+    "title": "Machine Learning Engineer",
+    "years_of_experience": 4.2,
+    "location": "Trivandrum, Kerala",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Fine-tuning LLMs\" for 89 months, but entire career spans only 50 months (4 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"LangChain\" for 92 months, but entire career spans only 50 months (4 yrs stated experience)"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0035104",
+    "title": "Software Engineer",
+    "years_of_experience": 5.5,
+    "location": "Chandigarh, Chandigarh",
+    "flags": [
+      "H3",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H3",
+        "plain": "\"Software Engineer\" at Cognizant: dates span 18 months but profile records 114 months (off by 96 months)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (162 months) is 2.5× the stated 6 years of experience"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0036437",
+    "title": "Search Engineer",
+    "years_of_experience": 4.8,
+    "location": "Kolkata, West Bengal",
+    "flags": [
+      "H2b"
+    ],
+    "reasons": [
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Elasticsearch\" for 92 months, but entire career spans only 57 months (5 yrs stated experience)"
+      },
+      {
+        "code": "H2b",
+        "plain": "Expert in \"Sentence Transformers\" for 93 months, but entire career spans only 57 months (5 yrs stated experience)"
+      }
+    ],
+    "severity": 2
+  },
+  {
+    "candidate_id": "CAND_0037539",
+    "title": "Project Manager",
+    "years_of_experience": 4.9,
+    "location": "Noida, Uttar Pradesh",
+    "flags": [
+      "H3",
+      "H6"
+    ],
+    "reasons": [
+      {
+        "code": "H3",
+        "plain": "\"Project Manager\" at Stark Industries: dates span 49 months but profile records 106 months (off by 57 months)"
+      },
+      {
+        "code": "H6",
+        "plain": "Total career history (115 months) is 2.0× the stated 5 years of experience"
+      }
+    ],
+    "severity": 2
+  }
+]

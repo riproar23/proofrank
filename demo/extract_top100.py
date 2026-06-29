@@ -9,6 +9,7 @@ Run from project root:
 import argparse
 import csv
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -108,6 +109,13 @@ def main() -> None:
     OUT.write_text(json.dumps(ordered, indent=2), encoding="utf-8")
     print(f"Saved {len(ordered)} candidates to {OUT}  "
           f"({OUT.stat().st_size // 1024} KB)")
+
+    flagged_src = ROOT / "output" / "flagged.json"
+    flagged_dst = ROOT / "demo" / "flagged.json"
+    if flagged_src.exists():
+        shutil.copy2(flagged_src, flagged_dst)
+        n = len(json.loads(flagged_dst.read_text(encoding="utf-8")))
+        print(f"Copied flagged.json ({n} entries) to {flagged_dst}")
 
 
 if __name__ == "__main__":

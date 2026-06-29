@@ -38,6 +38,8 @@ st.set_page_config(
 ROOT = Path(__file__).parent
 DATA_PATH = ROOT / "demo" / "top100_data.json"
 META_PATH = ROOT / "demo" / "ranking_meta.json"
+FLAGGED_DEMO_PATH = ROOT / "demo" / "flagged.json"
+FLAGGED_OUTPUT_PATH = ROOT / "output" / "flagged.json"
 JSONL_PATH = ROOT / "data" / "candidates.jsonl"
 UPLOADED_JSONL_PATH = ROOT / "data" / "candidates_uploaded.jsonl"
 OUTPUT_CSV = ROOT / "output" / "final.csv"
@@ -203,6 +205,28 @@ details.pr-overflow-det > summary::after{ content:"▸"; font-size:.78rem; opaci
 details.pr-overflow-det[open] > summary::after{ content:"▾"; }
 .pr-overflow-body{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.4rem; }
 
+/* flagged candidate cards */
+.pr-flag-card{
+  background:#FFFBF2; border:1px solid #E8CC88; border-radius:12px;
+  padding:.75rem 1rem; margin:0 0 .75rem 0;
+}
+.pr-flag-head{ display:flex; align-items:baseline; gap:.75rem; margin-bottom:.45rem; }
+.pr-flag-title{ font-size:.99rem; font-weight:640; color:var(--ink); flex:1; min-width:0; }
+.pr-flag-badge{
+  flex:0 0 auto; font-size:.8rem; font-weight:700; background:var(--amber-soft);
+  color:var(--amber); border:1px solid #E8CC88; border-radius:999px; padding:.18rem .55rem;
+}
+.pr-flag-rule{ margin:.28rem 0; font-size:.91rem; }
+.pr-flag-code{
+  display:inline-block; font-size:.76rem; font-weight:720; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--amber); background:var(--amber-soft);
+  border:1px solid #E8CC88; border-radius:5px; padding:.05rem .38rem; margin-right:.4rem;
+}
+.pr-flag-note{
+  font-size:.83rem; color:var(--muted); margin-top:.5rem; padding-top:.4rem;
+  border-top:1px dashed #E8CC88;
+}
+
 /* CSV download button */
 [data-testid="stSidebar"] [data-testid="stDownloadButton"] button{
   background:var(--accent); color:#fff; border:none; border-radius:11px;
@@ -261,6 +285,17 @@ def load_candidates(cache_key: int = 0) -> list[dict]:
         )
         st.stop()
     return json.loads(DATA_PATH.read_text(encoding="utf-8"))
+
+
+@st.cache_data
+def load_flagged(cache_key: int = 0) -> list[dict]:
+    for p in (FLAGGED_OUTPUT_PATH, FLAGGED_DEMO_PATH):
+        if p.exists():
+            try:
+                return json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+    return []
 
 
 # ─── Schema validation ────────────────────────────────────────────────────────
@@ -653,6 +688,50 @@ def candidate_card(row: dict, open_default: bool, extra_class: str = "") -> str:
         f'{summary}'
         f'<div class="pr-body">{facts}{"".join(checks)}{why_good}{why_less}{flag_box}'
         f'{career_html(row)}{tech}</div></details>'
+    )
+
+
+_FLAG_LABELS: dict[str, str] = {
+    "H1":  "Expert skill claimed with no recorded usage",
+    "H2b": "Skill usage duration exceeds entire career length",
+    "H3":  "Employment dates impossible given company founding date",
+    "H6":  "Total career history longer than stated years of experience",
+}
+
+
+def flagged_card_html(entry: dict) -> str:
+    title = html.escape(entry.get("title", "Unknown"))
+    yoe   = entry.get("years_of_experience", 0)
+    loc   = entry.get("location", "")
+    sub   = f"{yoe:.0f} yrs experience" + (f" · {html.escape(loc)}" if loc else "")
+    reasons = entry.get("reasons", [])
+    n = len(reasons)
+    badge = f"⚠️ {n} violation{'s' if n != 1 else ''}"
+
+    rules_html = []
+    for r in reasons:
+        code  = r.get("code", "")
+        label = html.escape(_FLAG_LABELS.get(code, code))
+        plain = html.escape(r.get("plain", ""))
+        rules_html.append(
+            f'<div class="pr-flag-rule">'
+            f'<span class="pr-flag-code">{html.escape(code)}</span>'
+            f'<span style="color:var(--muted);font-size:.8rem">{label}</span> — '
+            f'{plain}'
+            f'</div>'
+        )
+
+    return (
+        f'<div class="pr-flag-card">'
+        f'<div class="pr-flag-head">'
+        f'<span class="pr-flag-title">⚠️ {title}</span>'
+        f'<span class="pr-flag-badge">{badge}</span>'
+        f'</div>'
+        f'<div style="font-size:.88rem;color:var(--muted);margin-bottom:.4rem">{sub}</div>'
+        + "".join(rules_html) +
+        f'<div class="pr-flag-note">This profile was excluded from the shortlist. '
+        f'A human reviewer should verify before any employment decision.</div>'
+        f'</div>'
     )
 
 
@@ -1112,6 +1191,31 @@ for row in filtered:
     extra = "manual-entry" if row.get("_manual") else ""
     st.markdown(candidate_card(row, open_default=row["rank"] <= 5, extra_class=extra),
                 unsafe_allow_html=True)
+
+st.write("")
+
+# ── Flagged profiles section ──────────────────────────────────────────────────
+flagged = load_flagged(st.session_state.get("cache_key", 0))
+with st.expander(
+    f"⚠️  Flagged profiles — excluded from shortlist ({len(flagged)} shown)"
+    if flagged else "⚠️  Flagged profiles — none detected in current dataset"
+):
+    if not flagged:
+        st.success(
+            "✅ No integrity violations detected in the current dataset. "
+            "All candidates passed the honeypot and consistency checks."
+        )
+    else:
+        st.markdown(
+            f"The integrity layer automatically detected and excluded **{len(flagged)} profiles** "
+            f"from the shortlist. Each card below explains — in plain language — what was "
+            f"inconsistent. These are shown for transparency; no automated system is perfect, "
+            f"so treat these as signals, not verdicts.",
+            unsafe_allow_html=False,
+        )
+        st.write("")
+        for entry in flagged:
+            st.markdown(flagged_card_html(entry), unsafe_allow_html=True)
 
 st.write("")
 st.caption(
