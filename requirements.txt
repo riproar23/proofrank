@@ -1,3 +1,2 @@
-orjson>=3.9.0
-pyyaml>=6.0
-streamlit>=1.35.0
+orjson==3.11.9
+streamlit==1.58.0
