@@ -1,21 +1,26 @@
 """
 ProofRank — Candidate Shortlist (recruiter-friendly demo)
-Minimal, fully-offline Streamlit demo for the Redrob AI submission.
+Fully-offline Streamlit demo for the Redrob AI submission.
 
 Launch:  streamlit run app.py
-Data:    demo/top100_data.json  (pre-baked top-100; no network, instant load)
+Data:    demo/top100_data.json  (pre-baked top-100; instant load, no network)
 
-This file is the DEMO ONLY. It does not score, rank, or recompute anything —
-it reads the pre-baked output the ranker already produced and presents it in
-plain language for a non-technical recruiter.
+Optional (takes ~1 min):
+  Click "Re-rank current dataset" in the sidebar to re-analyze data/candidates.jsonl
+  or upload a new dataset directly from the UI.
 """
 
 from __future__ import annotations
 
 import csv
+import datetime
+import gzip
 import html
 import io
 import json
+import re
+import subprocess
+import sys
 from pathlib import Path
 
 import streamlit as st
@@ -31,9 +36,11 @@ st.set_page_config(
 
 ROOT = Path(__file__).parent
 DATA_PATH = ROOT / "demo" / "top100_data.json"
+META_PATH = ROOT / "demo" / "ranking_meta.json"
+JSONL_PATH = ROOT / "data" / "candidates.jsonl"
+UPLOADED_JSONL_PATH = ROOT / "data" / "candidates_uploaded.jsonl"
+OUTPUT_CSV = ROOT / "output" / "final.csv"
 
-# Evidence dimension → plain-language "what they've actually done", in the order
-# a recruiter cares about. Each maps to a key in row["ev_dims"] (0.0–1.0).
 DONE_ITEMS = [
     ("ranking",    "Has shipped ranking & recommendation systems"),
     ("retrieval",  "Has built production search / retrieval systems"),
@@ -69,6 +76,15 @@ html, body, [data-testid="stAppViewContainer"], .stApp{
   color:var(--ink);
 }
 .pr-hero p{ font-size:1.06rem; line-height:1.6; color:var(--muted); margin:0; max-width:760px; }
+
+/* dataset status banner */
+.pr-meta{
+  background:#F2EAE0; border:1px solid var(--line); border-radius:10px;
+  padding:.55rem .95rem; margin:.3rem 0 1.2rem 0;
+  font-size:.93rem; color:var(--muted); display:flex; gap:.5rem; align-items:center;
+}
+.pr-meta .dot{ width:8px; height:8px; border-radius:50%; background:var(--sage);
+               flex:0 0 auto; }
 
 /* cards (HTML <details>) */
 details.pr-card{
@@ -146,25 +162,60 @@ details.pr-tech > summary::before{ content:"🔍  "; }
 .pr-tech-body code{ background:#F2EADF; padding:.05rem .35rem; border-radius:5px; font-size:.86rem; }
 .pr-tech-h{ font-weight:700; margin:.7rem 0 .25rem 0; color:var(--ink); }
 
-/* CSV download button — warm accent, readable */
+/* CSV download button */
 [data-testid="stSidebar"] [data-testid="stDownloadButton"] button{
   background:var(--accent); color:#fff; border:none; border-radius:11px;
   font-weight:650; padding:.55rem 1rem; box-shadow:0 4px 14px rgba(221,122,91,.30);
+  width:100%;
 }
 [data-testid="stSidebar"] [data-testid="stDownloadButton"] button:hover{
   background:#C96846; color:#fff;
 }
-[data-testid="stSidebar"] [data-testid="stDownloadButton"] button p{ color:#fff; font-weight:650; }
-/* toggles & radios in the accent colour */
+[data-testid="stSidebar"] [data-testid="stDownloadButton"] button p{
+  color:#fff; font-weight:650;
+}
+/* toggles & radios */
 [data-testid="stSidebar"] [data-baseweb="radio"] svg{ fill:var(--accent); }
 .stCheckbox [data-baseweb="checkbox"] [aria-checked="true"]{ background:var(--sage) !important; }
 </style>
 """
 
-# ─── Data loading ─────────────────────────────────────────────────────────────
+# ─── Meta helpers (last-ranked timestamp + source) ───────────────────────────
+
+def load_meta() -> dict:
+    try:
+        return json.loads(META_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def save_meta(source: str, n_input: int, n_ranked: int) -> None:
+    META_PATH.write_text(json.dumps({
+        "last_ranked_utc": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        "source": source,
+        "n_input": n_input,
+        "n_ranked": n_ranked,
+    }, indent=2), encoding="utf-8")
+
+
+def meta_banner_html(meta: dict, is_prebaked: bool) -> str:
+    if is_prebaked or not meta:
+        return ('<div class="pr-meta"><span class="dot" style="background:#C68A3A"></span>'
+                '📸 Showing pre-baked snapshot — click <b>Re-rank</b> in the sidebar to refresh</div>')
+    ts = meta.get("last_ranked_utc", "")
+    src = meta.get("source", "")
+    n_in = meta.get("n_input", 0)
+    n_out = meta.get("n_ranked", 0)
+    n_in_fmt = f"{n_in:,}" if n_in else "?"
+    return (f'<div class="pr-meta"><span class="dot"></span>'
+            f'🕐 Last analyzed: <b>{ts}</b> · Source: <b>{src}</b> · '
+            f'{n_in_fmt} candidates → top {n_out}</div>')
+
+
+# ─── Data loading (cache-key driven so re-rank forces a reload) ───────────────
 
 @st.cache_data
-def load_candidates() -> list[dict]:
+def load_candidates(cache_key: int = 0) -> list[dict]:
     if not DATA_PATH.exists():
         st.error(
             f"Demo data not found: {DATA_PATH}\n\n"
@@ -174,26 +225,154 @@ def load_candidates() -> list[dict]:
     return json.loads(DATA_PATH.read_text(encoding="utf-8"))
 
 
-candidates = load_candidates()
+# ─── Schema validation ────────────────────────────────────────────────────────
 
-# ─── Plain-language helpers ───────────────────────────────────────────────────
+REQUIRED_KEYS = {"candidate_id", "profile", "career_history", "skills", "redrob_signals"}
 
-# 5 friendly match levels derived from rank band (filled dots out of 5).
+
+def validate_jsonl_bytes(raw: bytes, filename: str) -> str | None:
+    """Validate first 10 records of a JSONL byte string. Returns error or None."""
+    try:
+        if filename.endswith(".gz"):
+            raw = gzip.decompress(raw)
+        lines = [l for l in raw.decode("utf-8", errors="replace").splitlines() if l.strip()]
+    except Exception as e:
+        return f"Could not read the file: {e}"
+
+    if not lines:
+        return "The file appears to be empty."
+
+    for i, line in enumerate(lines[:10]):
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            return (f"Line {i + 1} is not valid JSON. "
+                    "Make sure the file is a JSONL (one JSON object per line).")
+        missing = REQUIRED_KEYS - set(rec.keys())
+        if missing:
+            return (f"Line {i + 1} is missing required fields: {', '.join(sorted(missing))}. "
+                    "Expected: candidate_id, profile, career_history, skills, redrob_signals.")
+    return None
+
+
+def save_upload_to_disk(uploaded_file, dest: Path) -> None:
+    """Stream-write uploaded file to disk. Decompresses .gz transparently."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    uploaded_file.seek(0)
+    if uploaded_file.name.endswith(".gz"):
+        tmp_gz = dest.with_suffix(".tmp.gz")
+        with open(tmp_gz, "wb") as f:
+            while chunk := uploaded_file.read(8 * 1024 * 1024):
+                f.write(chunk)
+        with gzip.open(tmp_gz, "rb") as gz_in, open(dest, "wb") as f_out:
+            while chunk := gz_in.read(8 * 1024 * 1024):
+                f_out.write(chunk)
+        tmp_gz.unlink()
+    else:
+        with open(dest, "wb") as f:
+            while chunk := uploaded_file.read(8 * 1024 * 1024):
+                f.write(chunk)
+
+
+# ─── Pipeline (ranker + extraction, blocking with live log) ──────────────────
+
+def _run_subprocess_logged(cmd: list[str], label: str, status_obj) -> tuple[int, str]:
+    """Run a subprocess in the project root; stream stdout to a status widget."""
+    status_obj.write(f"**{label}**")
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, cwd=str(ROOT), bufsize=1,
+    )
+    lines: list[str] = []
+    log_area = status_obj.empty()
+    for line in proc.stdout:
+        line = line.rstrip()
+        if line:
+            lines.append(line)
+            log_area.code("\n".join(lines[-8:]), language=None)
+    proc.wait()
+    return proc.returncode, "\n".join(lines)
+
+
+def run_pipeline(jsonl_path: Path) -> tuple[bool, str, dict]:
+    """
+    Run ranker → extract_top100 with a live st.status progress widget.
+    Returns (success, error_message, meta_dict).
+    """
+    OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
+
+    with st.status(
+        "Analyzing candidates — this takes about a minute…",
+        expanded=True,
+    ) as status:
+
+        # ── Step 1: ranker ────────────────────────────────────────────────────
+        ret, out = _run_subprocess_logged(
+            [sys.executable, "-m", "src.rank",
+             "--candidates", str(jsonl_path),
+             "--output", str(OUTPUT_CSV)],
+            "Step 1 of 2 — Ranking all candidates",
+            status,
+        )
+
+        if ret != 0:
+            status.update(label="Ranker failed ❌", state="error")
+            return False, (
+                "The ranker exited with an error. Check that the dataset file is "
+                "a valid JSONL with the expected schema."
+            ), {}
+
+        # Parse n_input from stdout ("Scored X,XXX candidates in Xs")
+        n_input = 0
+        for line in out.splitlines():
+            m = re.search(r"Scored ([\d,]+) candidates", line)
+            if m:
+                n_input = int(m.group(1).replace(",", ""))
+                break
+
+        if "Validator: PASS" not in out:
+            status.update(label="Output validation failed ❌", state="error")
+            return False, (
+                "The ranked output failed the submission validator. "
+                "The dataset may be malformed or too small."
+            ), {}
+
+        # ── Step 2: rebuild demo cards ────────────────────────────────────────
+        ret2, out2 = _run_subprocess_logged(
+            [sys.executable, "demo/extract_top100.py",
+             "--candidates", str(jsonl_path)],
+            "Step 2 of 2 — Building candidate cards",
+            status,
+        )
+
+        if ret2 != 0:
+            status.update(label="Card rebuild failed ❌", state="error")
+            return False, f"Card rebuild failed: {out2[:300]}", {}
+
+        status.update(label="Analysis complete ✅", state="complete")
+
+    meta = {
+        "source": jsonl_path.name,
+        "n_input": n_input,
+        "n_ranked": 100,
+    }
+    return True, "", meta
+
+
+# ─── Plain-language card helpers ──────────────────────────────────────────────
+
 def match_level(rank: int) -> tuple[str, int]:
-    if rank <= 10:
-        return "Excellent match", 5
-    if rank <= 30:
-        return "Strong match", 4
-    if rank <= 60:
-        return "Good match", 3
-    if rank <= 85:
-        return "Fair match", 2
+    if rank <= 10:  return "Excellent match", 5
+    if rank <= 30:  return "Strong match", 4
+    if rank <= 60:  return "Good match", 3
+    if rank <= 85:  return "Fair match", 2
     return "Possible match", 1
 
 
 def dots_html(filled: int) -> str:
     return "".join(
-        f'<span class="on">●</span>' if i < filled else f'<span class="off">○</span>'
+        '<span class="on">●</span>' if i < filled else '<span class="off">○</span>'
         for i in range(5)
     )
 
@@ -201,9 +380,7 @@ def dots_html(filled: int) -> str:
 def current_company(row: dict) -> str:
     career = row.get("career_history", [])
     cur = next((c.get("company") for c in career if c.get("is_current")), None)
-    if cur:
-        return cur
-    return career[0]["company"] if career else "—"
+    return cur or (career[0]["company"] if career else "—")
 
 
 def availability_text(row: dict) -> str | None:
@@ -211,7 +388,7 @@ def availability_text(row: dict) -> str | None:
     if sig.get("open_to_work_flag"):
         return "Open to new roles"
     npd = sig.get("notice_period_days")
-    if isinstance(npd, (int, float)) and npd >= 0 and npd <= 30:
+    if isinstance(npd, (int, float)) and 0 <= npd <= 30:
         return "Could start soon"
     rr = sig.get("recruiter_response_rate")
     if isinstance(rr, (int, float)) and rr > 0.6:
@@ -227,31 +404,23 @@ def has(row: dict, dim: str) -> bool:
 
 def why_person_plain(row: dict) -> str:
     strengths = []
-    if has(row, "ranking"):
-        strengths.append("built the ranking and recommendation systems this role is about")
-    if has(row, "retrieval"):
-        strengths.append("shipped real search and retrieval features")
-    if has(row, "vector"):
-        strengths.append("worked hands-on with vector / semantic search")
-    if has(row, "evaluation"):
-        strengths.append("measured search quality properly with A/B tests and metrics")
-    if has(row, "shipping"):
-        strengths.append("delivered to real users at scale")
+    if has(row, "ranking"):   strengths.append("built the ranking and recommendation systems this role is about")
+    if has(row, "retrieval"): strengths.append("shipped real search and retrieval features")
+    if has(row, "vector"):    strengths.append("worked hands-on with vector / semantic search")
+    if has(row, "evaluation"):strengths.append("measured search quality properly with A/B tests and metrics")
+    if has(row, "shipping"):  strengths.append("delivered to real users at scale")
     if not strengths:
         return ("Their title and experience fit the role, though their work history "
                 "shows fewer concrete examples than the people ranked above.")
-    if len(strengths) == 1:
-        body = strengths[0]
-    else:
-        body = ", ".join(strengths[:-1]) + ", and " + strengths[-1]
+    body = (strengths[0] if len(strengths) == 1
+            else ", ".join(strengths[:-1]) + ", and " + strengths[-1])
     return f"Their actual work history shows they have {body}."
 
 
 def why_not_higher_plain(row: dict) -> str:
     rank = row["rank"]
-    yoe = float(row.get("profile", {}).get("years_of_experience", 0) or 0)
+    yoe  = float(row.get("profile", {}).get("years_of_experience", 0) or 0)
     flags = [f for f in row.get("flags", []) if f != "honeypot"]
-
     if not has(row, "ranking"):
         return ("Their history doesn't yet show a shipped ranking or recommendation "
                 "system — the single most important thing for this role.")
@@ -284,13 +453,12 @@ def flag_text(row: dict) -> str | None:
 def career_html(row: dict) -> str:
     career = row.get("career_history", [])
     roles = [r for r in career if (r.get("description") or "").strip()]
-    # current first, then keep order
     roles.sort(key=lambda r: (not r.get("is_current"),))
     if not roles:
         return ""
     out = ['<div class="pr-sec-h">Recent work</div>']
     for r in roles[:2]:
-        end = "present" if r.get("is_current") else (r.get("end_date") or "")
+        end  = "present" if r.get("is_current") else (r.get("end_date") or "")
         head = f"{r.get('title','')} · {r.get('company','')} ({r.get('start_date','?')} – {end})"
         desc = (r.get("description") or "").strip()
         desc = desc[:200] + ("…" if len(desc) > 200 else "")
@@ -302,80 +470,70 @@ def career_html(row: dict) -> str:
 
 
 def tech_html(row: dict) -> str:
-    d = row.get("ev_dims", {})
+    d   = row.get("ev_dims", {})
     sig = row.get("redrob_signals", {}) or {}
 
     def sig_val(key, fmt="raw"):
         v = sig.get(key)
-        if v is None or v == -1:
-            return "—"
-        if fmt == "pct":
-            return f"{v:.0%}"
-        if fmt == "int":
-            return f"{int(v)}"
+        if v is None or v == -1: return "—"
+        if fmt == "pct":  return f"{v:.0%}"
+        if fmt == "int":  return f"{int(v)}"
         return str(v)
 
-    assess = sig.get("skill_assessment_scores") or {}
-    assess_str = (", ".join(f"{k} {int(v)}/100" for k, v in assess.items())
-                  if assess else "—")
-
-    skills = row.get("skills", [])
+    assess    = sig.get("skill_assessment_scores") or {}
+    assess_str = (", ".join(f"{k} {int(v)}/100" for k, v in assess.items()) if assess else "—")
+    skills    = row.get("skills", [])
     skill_str = (", ".join(
         f"{html.escape(s.get('name',''))} ({s.get('proficiency','?')}, {s.get('duration_months',0)}mo)"
         for s in skills[:8]) if skills else "—")
-
     breakdown = [
-        ("Evidence × 3", f"{3 * row.get('ev_score', 0):.0f}"),
-        ("Title prior", f"{row.get('title_prior', 0):.0f} / 200"),
-        ("Skill coherence", f"{row.get('skill_coherence', 0):.0f} / 200"),
-        ("Years-of-experience fit", f"{row.get('yoe_fit', 0):.0f} / 60"),
-        ("Nice-to-have", f"{row.get('nice', 0):.0f} / 40"),
-        ("Integrity penalties", f"−{row.get('penalty', 0):.0f}"),
-        ("JD-aligned tiebreak", f"+{row.get('tiebreak', 0):.0f} / 60"),
-        ("Behavioral modifier", f"{row.get('behavioral', 0):+.0f} / ±40"),
+        ("Evidence × 3",          f"{3 * row.get('ev_score', 0):.0f}"),
+        ("Title prior",            f"{row.get('title_prior', 0):.0f} / 200"),
+        ("Skill coherence",        f"{row.get('skill_coherence', 0):.0f} / 200"),
+        ("Years-of-experience fit",f"{row.get('yoe_fit', 0):.0f} / 60"),
+        ("Nice-to-have",           f"{row.get('nice', 0):.0f} / 40"),
+        ("Integrity penalties",    f"−{row.get('penalty', 0):.0f}"),
+        ("JD-aligned tiebreak",    f"+{row.get('tiebreak', 0):.0f} / 60"),
+        ("Behavioral modifier",    f"{row.get('behavioral', 0):+.0f} / ±40"),
     ]
-
-    parts = ['<div class="pr-tech-body">']
-    parts.append('<div class="pr-tech-h">Raw fit score</div>')
-    parts.append(
-        f'<div class="pr-kv"><span class="k">Final score</span><span><code>{row.get("score",0):.2f}</code></span>'
-        f'<span class="k">Evidence score</span><span><code>{row.get("ev_score",0):.0f} / 500</code></span></div>'
-    )
-    parts.append('<div class="pr-tech-h">Evidence dimensions (0–1)</div>')
-    parts.append('<div class="pr-kv">' + "".join(
-        f'<span class="k">{k}</span><span><code>{float(d.get(k,0)):.2f}</code></span>'
-        for k in ["retrieval", "vector", "ranking", "evaluation", "shipping"]
-    ) + '</div>')
-    parts.append('<div class="pr-tech-h">Score breakdown</div>')
-    parts.append('<div class="pr-kv">' + "".join(
-        f'<span class="k">{html.escape(k)}</span><span><code>{v}</code></span>'
-        for k, v in breakdown
-    ) + '</div>')
-    parts.append('<div class="pr-tech-h">Behavioral signals (raw)</div>')
-    parts.append('<div class="pr-kv">'
-        f'<span class="k">Recruiter response rate</span><span>{sig_val("recruiter_response_rate","pct")}</span>'
-        f'<span class="k">Last active</span><span>{html.escape(str(sig.get("last_active_date") or "—"))}</span>'
-        f'<span class="k">GitHub activity</span><span>{sig_val("github_activity_score","int")}</span>'
-        f'<span class="k">Notice period</span><span>{sig_val("notice_period_days","int")} days</span>'
-        f'<span class="k">Interview completion</span><span>{sig_val("interview_completion_rate","pct")}</span>'
-        f'<span class="k">Skill assessments</span><span>{html.escape(assess_str)}</span>'
-        '</div>')
-    parts.append('<div class="pr-tech-h">Top skills (with durations)</div>')
-    parts.append(f'<div class="pr-kv"><span>{skill_str}</span></div>')
-    parts.append('</div>')
+    parts = ['<div class="pr-tech-body">',
+             '<div class="pr-tech-h">Raw fit score</div>',
+             f'<div class="pr-kv"><span class="k">Final score</span><span><code>{row.get("score",0):.2f}</code></span>'
+             f'<span class="k">Evidence score</span><span><code>{row.get("ev_score",0):.0f} / 500</code></span></div>',
+             '<div class="pr-tech-h">Evidence dimensions (0–1)</div>',
+             '<div class="pr-kv">' + "".join(
+                 f'<span class="k">{k}</span><span><code>{float(d.get(k,0)):.2f}</code></span>'
+                 for k in ["retrieval","vector","ranking","evaluation","shipping"]
+             ) + '</div>',
+             '<div class="pr-tech-h">Score breakdown</div>',
+             '<div class="pr-kv">' + "".join(
+                 f'<span class="k">{html.escape(k)}</span><span><code>{v}</code></span>'
+                 for k, v in breakdown
+             ) + '</div>',
+             '<div class="pr-tech-h">Behavioral signals (raw)</div>',
+             '<div class="pr-kv">'
+             f'<span class="k">Recruiter response rate</span><span>{sig_val("recruiter_response_rate","pct")}</span>'
+             f'<span class="k">Last active</span><span>{html.escape(str(sig.get("last_active_date") or "—"))}</span>'
+             f'<span class="k">GitHub activity</span><span>{sig_val("github_activity_score","int")}</span>'
+             f'<span class="k">Notice period</span><span>{sig_val("notice_period_days","int")} days</span>'
+             f'<span class="k">Interview completion</span><span>{sig_val("interview_completion_rate","pct")}</span>'
+             f'<span class="k">Skill assessments</span><span>{html.escape(assess_str)}</span>'
+             '</div>',
+             '<div class="pr-tech-h">Top skills (with durations)</div>',
+             f'<div class="pr-kv"><span>{skill_str}</span></div>',
+             '</div>']
     return "".join(parts)
 
 
 def candidate_card(row: dict, open_default: bool) -> str:
-    rank = row["rank"]
-    prof = row.get("profile", {})
-    title = html.escape(prof.get("current_title", "Candidate"))
-    yoe = float(prof.get("years_of_experience", 0) or 0)
+    rank    = row["rank"]
+    prof    = row.get("profile", {})
+    title   = html.escape(prof.get("current_title", "Candidate"))
+    yoe     = float(prof.get("years_of_experience", 0) or 0)
     company = html.escape(current_company(row))
     label, filled = match_level(rank)
     flagged = bool(row.get("flags"))
 
-    # summary header
     flag_pin = '<span class="pr-flag-pin" title="Needs verifying">⚠️</span>' if flagged else ""
     summary = (
         f'<summary>'
@@ -384,11 +542,9 @@ def candidate_card(row: dict, open_default: bool) -> str:
         f'<span class="pr-sub">{yoe:.0f} yrs experience · {company}</span></span>'
         f'<span class="pr-sum-match"><span class="pr-dots">{dots_html(filled)}</span>'
         f'<span class="pr-mlabel">{label}</span></span>'
-        f'{flag_pin}'
-        f'</summary>'
+        f'{flag_pin}</summary>'
     )
 
-    # facts chips
     chips = [f'<span class="pr-chip">💼 {title}</span>',
              f'<span class="pr-chip">🗓 {yoe:.0f} years</span>',
              f'<span class="pr-chip">🏢 {company}</span>']
@@ -397,80 +553,105 @@ def candidate_card(row: dict, open_default: bool) -> str:
         chips.append(f'<span class="pr-chip avail">🟢 {avail}</span>')
     facts = '<div class="pr-facts">' + "".join(chips) + '</div>'
 
-    # "what they've actually done" checklist
     checks = ['<div class="pr-sec-h">What they\'ve actually done</div>']
     for dim, text in DONE_ITEMS:
         if has(row, dim):
-            checks.append(f'<div class="pr-check"><span class="ic">✅</span>'
-                          f'<span>{html.escape(text)}</span></div>')
+            checks.append(f'<div class="pr-check"><span class="ic">✅</span><span>{html.escape(text)}</span></div>')
         else:
-            checks.append(f'<div class="pr-check no"><span class="ic">➖</span>'
-                          f'<span>{html.escape(text)}</span></div>')
-    checks_html = "".join(checks)
+            checks.append(f'<div class="pr-check no"><span class="ic">➖</span><span>{html.escape(text)}</span></div>')
 
-    why_good = (f'<div class="pr-why good"><b>Why this person</b>'
-                f'{html.escape(why_person_plain(row))}</div>')
-    why_less = (f'<div class="pr-why less"><b>Why not ranked higher</b>'
-                f'{html.escape(why_not_higher_plain(row))}</div>')
-
-    ftext = flag_text(row)
-    flag_box = (f'<div class="pr-flagbox"><b>⚠️ Worth verifying</b>{html.escape(ftext)}</div>'
-                if ftext else "")
-
-    tech = (f'<details class="pr-tech"><summary>See the details</summary>'
-            f'{tech_html(row)}</details>')
+    why_good = (f'<div class="pr-why good"><b>Why this person</b>{html.escape(why_person_plain(row))}</div>')
+    why_less = (f'<div class="pr-why less"><b>Why not ranked higher</b>{html.escape(why_not_higher_plain(row))}</div>')
+    ftext    = flag_text(row)
+    flag_box = (f'<div class="pr-flagbox"><b>⚠️ Worth verifying</b>{html.escape(ftext)}</div>' if ftext else "")
+    tech     = (f'<details class="pr-tech"><summary>See the details</summary>{tech_html(row)}</details>')
 
     open_attr = " open" if open_default else ""
     return (
         f'<details class="pr-card"{open_attr}>'
         f'{summary}'
-        f'<div class="pr-body">'
-        f'{facts}{checks_html}{why_good}{why_less}{flag_box}'
-        f'{career_html(row)}{tech}'
-        f'</div></details>'
+        f'<div class="pr-body">{facts}{"".join(checks)}{why_good}{why_less}{flag_box}'
+        f'{career_html(row)}{tech}</div></details>'
     )
 
 
 def make_csv(rows: list[dict]) -> str:
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(["rank", "match", "candidate_id", "title", "years_experience",
-                "current_company", "built_ranking", "built_retrieval",
-                "vector_search", "measures_quality", "shipped_at_scale",
-                "needs_verifying", "why_this_person", "why_not_higher",
-                "raw_score", "evidence_score"])
+    w.writerow(["rank","match","candidate_id","title","years_experience","current_company",
+                "built_ranking","built_retrieval","vector_search","measures_quality",
+                "shipped_at_scale","needs_verifying","why_this_person","why_not_higher",
+                "raw_score","evidence_score"])
     for r in rows:
         prof = r.get("profile", {})
         label, _ = match_level(r["rank"])
         w.writerow([
             r["rank"], label, r["candidate_id"],
-            prof.get("current_title", ""), f'{float(prof.get("years_of_experience",0) or 0):.0f}',
+            prof.get("current_title",""), f'{float(prof.get("years_of_experience",0) or 0):.0f}',
             current_company(r),
-            "yes" if has(r, "ranking") else "no",
-            "yes" if has(r, "retrieval") else "no",
-            "yes" if has(r, "vector") else "no",
-            "yes" if has(r, "evaluation") else "no",
-            "yes" if has(r, "shipping") else "no",
-            "yes" if r.get("flags") else "no",
+            "yes" if has(r,"ranking")    else "no",
+            "yes" if has(r,"retrieval")  else "no",
+            "yes" if has(r,"vector")     else "no",
+            "yes" if has(r,"evaluation") else "no",
+            "yes" if has(r,"shipping")   else "no",
+            "yes" if r.get("flags")      else "no",
             why_person_plain(r), why_not_higher_plain(r),
             f'{r.get("score",0):.2f}', f'{r.get("ev_score",0):.0f}',
         ])
     return buf.getvalue()
 
 
-# ─── Render ───────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════════
+# Render
+# ═══════════════════════════════════════════════════════════════════════════════
 
 st.markdown(CSS, unsafe_allow_html=True)
 
-# Sidebar — plain-language controls
+# ── Pipeline execution (runs in the main thread if triggered) ─────────────────
+# Triggered by setting st.session_state.pipeline_action = "rerank"
+#             and     st.session_state.pipeline_jsonl  = str(path)
+# After success/failure the result is stored in session_state and st.rerun() is
+# called so the main view re-renders with fresh data.
+
+if st.session_state.get("pipeline_action") == "rerank":
+    jsonl_p = Path(st.session_state.pop("pipeline_jsonl", str(JSONL_PATH)))
+    st.session_state.pop("pipeline_action", None)
+
+    ok, err, meta = run_pipeline(jsonl_p)
+
+    if ok:
+        save_meta(meta["source"], meta["n_input"], meta["n_ranked"])
+        st.session_state["cache_key"]        = st.session_state.get("cache_key", 0) + 1
+        st.session_state["pipeline_success"] = (
+            f"✅ Re-analysis complete — {meta['n_input']:,} candidates ranked, "
+            f"top {meta['n_ranked']} shown below."
+        )
+    else:
+        st.session_state["pipeline_error"] = f"❌ {err}"
+
+    st.rerun()
+
+# Show one-shot success / error banners (consumed on first display)
+if msg := st.session_state.pop("pipeline_success", None):
+    st.success(msg)
+if msg := st.session_state.pop("pipeline_error", None):
+    st.error(msg)
+
+# ── Load candidates (cache-key driven) ───────────────────────────────────────
+candidates  = load_candidates(st.session_state.get("cache_key", 0))
+meta        = load_meta()
+is_prebaked = not META_PATH.exists()
+
+# ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### 🌿 ProofRank")
     st.caption("Candidate shortlist for Redrob AI")
     st.divider()
 
+    # ── View filters ──────────────────────────────────────────────────────────
     show = st.radio("Show", ["All", "Top 10", "Top 50"], index=0)
-    strong_only = st.toggle("Only show strong matches", value=False,
-                            help="Strong or Excellent matches (top 30).")
+    strong_only  = st.toggle("Only show strong matches", value=False,
+                             help="Strong or Excellent matches (top 30).")
     flagged_only = st.toggle("Flagged profiles only", value=False,
                              help="Profiles with details worth verifying.")
     st.divider()
@@ -479,14 +660,10 @@ with st.sidebar:
     filtered: list[dict] = []
     for c in candidates:
         r = c["rank"]
-        if show == "Top 10" and r > 10:
-            continue
-        if show == "Top 50" and r > 50:
-            continue
-        if strong_only and r > 30:
-            continue
-        if flagged_only and not c.get("flags"):
-            continue
+        if show == "Top 10"  and r > 10:                     continue
+        if show == "Top 50"  and r > 50:                     continue
+        if strong_only       and r > 30:                     continue
+        if flagged_only      and not c.get("flags"):         continue
         filtered.append(c)
 
     st.markdown(f"**Showing {len(filtered)} of {len(candidates)} candidates**")
@@ -500,7 +677,84 @@ with st.sidebar:
             use_container_width=True,
         )
 
-# Hero
+    st.divider()
+
+    # ── Data section ──────────────────────────────────────────────────────────
+    st.markdown("#### 🗂 Data")
+
+    jsonl_present = JSONL_PATH.exists()
+
+    # Current dataset info
+    if jsonl_present:
+        sz_mb = JSONL_PATH.stat().st_size / 1_048_576
+        st.caption(f"📄 {JSONL_PATH.name} ({sz_mb:.0f} MB)")
+    else:
+        st.caption("📄 No dataset file found at `data/candidates.jsonl`")
+
+    # Re-rank button
+    rerank_help = (
+        "Re-analyze all candidates in data/candidates.jsonl and refresh the view."
+        if jsonl_present
+        else "No dataset found. Place candidates.jsonl in the data/ folder first."
+    )
+    if st.button(
+        "🔄  Re-rank current dataset",
+        disabled=not jsonl_present,
+        help=rerank_help,
+        type="primary",
+        use_container_width=True,
+    ):
+        st.session_state["pipeline_action"] = "rerank"
+        st.session_state["pipeline_jsonl"]  = str(JSONL_PATH)
+        st.rerun()
+
+    st.write("")
+
+    # Upload a new dataset
+    with st.expander("📤  Upload a new dataset"):
+        st.markdown(
+            "Upload a `.jsonl` or `.jsonl.gz` file of candidates. "
+            "It will be validated, saved, and ranked automatically.\n\n"
+            "**Required fields per record:** `candidate_id`, `profile`, "
+            "`career_history`, `skills`, `redrob_signals`\n\n"
+            "_Large files (>200 MB) may take a moment to upload._"
+        )
+        uploaded = st.file_uploader(
+            "Choose a candidate file",
+            type=["jsonl", "gz"],
+            key="dataset_upload",
+            label_visibility="collapsed",
+        )
+
+        if uploaded is not None:
+            already = st.session_state.get("processed_upload") == uploaded.name
+            if not already:
+                with st.spinner("Validating schema…"):
+                    # Read first 1 MB for validation
+                    uploaded.seek(0)
+                    sample = uploaded.read(1_048_576)
+                    uploaded.seek(0)
+                    err = validate_jsonl_bytes(sample, uploaded.name)
+
+                if err:
+                    st.error(f"⚠️ Invalid file: {err}")
+                else:
+                    with st.spinner("Saving to disk…"):
+                        save_upload_to_disk(uploaded, UPLOADED_JSONL_PATH)
+
+                    n_lines = sum(1 for _ in open(UPLOADED_JSONL_PATH, "rb"))
+                    st.success(
+                        f"✅ Saved **{uploaded.name}** "
+                        f"({n_lines:,} candidates). Starting re-analysis…"
+                    )
+                    st.session_state["processed_upload"]  = uploaded.name
+                    st.session_state["pipeline_action"]   = "rerank"
+                    st.session_state["pipeline_jsonl"]    = str(UPLOADED_JSONL_PATH)
+                    st.rerun()
+            else:
+                st.info(f"✅ **{uploaded.name}** is already loaded.")
+
+# ── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown(
     '<div class="pr-hero">'
     '<h1>Candidate Shortlist — Senior AI Engineer</h1>'
@@ -511,6 +765,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Dataset status banner
+st.markdown(meta_banner_html(meta, is_prebaked), unsafe_allow_html=True)
+
 with st.expander("ℹ️  How this works"):
     st.markdown(
         "We read every candidate's real career history and look for **evidence of the work "
@@ -520,7 +777,9 @@ with st.expander("ℹ️  How this works"):
         "titles they list. Profiles whose details look inconsistent or too good to be true "
         "are automatically **flagged for verification** and kept out of the top results.\n\n"
         "Each card leads with a plain-language verdict. The raw scores and technical "
-        "breakdown are tucked away under **“See the details”** if you want them."
+        "breakdown are tucked away under **\"See the details\"** if you want them.\n\n"
+        "Use the **Data** section in the sidebar to re-rank the current dataset or upload "
+        "a new one. The default view always loads instantly from a pre-baked snapshot."
     )
 
 st.write("")

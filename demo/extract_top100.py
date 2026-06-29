@@ -4,7 +4,9 @@ One-time data prep: extract top-100 candidates from candidates.jsonl
 
 Run from project root:
   python demo/extract_top100.py
+  python demo/extract_top100.py --candidates data/candidates_uploaded.jsonl
 """
+import argparse
 import csv
 import json
 import sys
@@ -35,11 +37,18 @@ def load_ranked_meta() -> dict[str, dict]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--candidates", type=Path,
+                        default=ROOT / "data" / "candidates.jsonl",
+                        help="Path to candidates JSONL file (default: data/candidates.jsonl)")
+    args = parser.parse_args()
+    jsonl_path = args.candidates
+
     ranked = load_ranked_meta()
     print(f"Loaded {len(ranked)} ranked entries from {FINAL_CSV}")
 
     records: dict[str, dict] = {}
-    with open(JSONL, "rb") as fh:
+    with open(jsonl_path, "rb") as fh:
         for raw in fh:
             raw = raw.strip()
             if not raw:
