@@ -190,6 +190,19 @@ details.pr-tech > summary::before{ content:"🔍  "; }
   font-size:.74rem; font-weight:720; text-transform:uppercase; letter-spacing:.05em;
 }
 
+/* expandable skill overflow */
+details.pr-overflow-det{ margin-top:.35rem; }
+details.pr-overflow-det > summary{
+  list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:.35rem;
+  background:#F2EADF; border:1px solid var(--line); border-radius:8px;
+  padding:.24rem .65rem; font-size:.85rem; color:var(--accent);
+  font-weight:620; line-height:1.45;
+}
+details.pr-overflow-det > summary::-webkit-details-marker{ display:none; }
+details.pr-overflow-det > summary::after{ content:"▸"; font-size:.78rem; opacity:.7; }
+details.pr-overflow-det[open] > summary::after{ content:"▾"; }
+.pr-overflow-body{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.4rem; }
+
 /* CSV download button */
 [data-testid="stSidebar"] [data-testid="stDownloadButton"] button{
   background:var(--accent); color:#fff; border:none; border-radius:11px;
@@ -518,28 +531,39 @@ def tech_html(row: dict) -> str:
             '<div class="pr-chips">' + "".join(chips) + '</div>'
         )
 
-    # ── Skills — chip pills (wrapped, capped at 8 + "+N more") ───────────────
+    # ── Skills — chip pills (wrapped, capped at 8 + expandable overflow) ────
     skills = row.get("skills", [])
     SKILL_CAP = 8
-    visible  = skills[:SKILL_CAP]
-    overflow = max(0, len(skills) - SKILL_CAP)
-    skill_chips = []
-    for s in visible:
+
+    def _skill_chip(s: dict) -> str:
         name = html.escape(s.get("name", ""))
         prof = s.get("proficiency", "")
         dur  = s.get("duration_months", 0)
         parts = [p for p in [name, prof, f"{dur}mo" if dur else ""] if p]
-        skill_chips.append(f'<span class="pr-skill-chip">{" · ".join(parts)}</span>')
-    if overflow:
-        skill_chips.append(
-            f'<span class="pr-skill-chip" style="color:var(--muted)">+{overflow} more</span>'
+        return f'<span class="pr-skill-chip">{" · ".join(parts)}</span>'
+
+    visible_chips = [_skill_chip(s) for s in skills[:SKILL_CAP]]
+    hidden_chips  = [_skill_chip(s) for s in skills[SKILL_CAP:]]
+
+    if not visible_chips and not hidden_chips:
+        skill_section = (
+            '<div class="pr-tech-h">Top skills</div>'
+            '<p style="color:var(--muted);font-size:.9rem">None listed</p>'
         )
-    skill_section = (
-        '<div class="pr-tech-h">Top skills</div>'
-        + ('<div class="pr-chips">' + "".join(skill_chips) + '</div>'
-           if skill_chips
-           else '<p style="color:var(--muted);font-size:.9rem">None listed</p>')
-    )
+    else:
+        overflow_html = ""
+        if hidden_chips:
+            overflow_html = (
+                f'<details class="pr-overflow-det">'
+                f'<summary>+{len(hidden_chips)} more</summary>'
+                f'<div class="pr-overflow-body">{"".join(hidden_chips)}</div>'
+                f'</details>'
+            )
+        skill_section = (
+            '<div class="pr-tech-h">Top skills</div>'
+            '<div class="pr-chips">' + "".join(visible_chips) + '</div>'
+            + overflow_html
+        )
 
     parts = [
         '<div class="pr-tech-body">',
