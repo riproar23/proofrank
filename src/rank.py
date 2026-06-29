@@ -484,6 +484,40 @@ def behavioral_term(record: dict) -> float:
     return max(-40.0, min(40.0, t))
 
 
+def jd_tiebreak(record: dict, ev_dims: dict) -> float:
+    """
+    JD-aligned tiebreak [0, 60] applied BEFORE behavioral_term so priority order
+    matches the JD's stated preferences:
+      (a) coding recency   [0, 25] — JD: 'this role writes code; no 18-mo gap'
+      (b) eval rigor       [0, 20] — NDCG/MAP/A-B evidence depth
+      (c) shipping scale   [0, 15] — confirmed production at scale
+    Behavioral is appended last (still ±40), as the final separator within each
+    JD-priority bucket.  Together tiebreak+behavioral span [-40, +100], well
+    below the inter-tier evidence gap (≥ 300 pts) so no cross-tier promotion.
+    """
+    t = 0.0
+    career = record.get("career_history", [])
+
+    # (a) Coding recency: is_current → fully active; else decay by gap in months
+    if any(r.get("is_current") for r in career):
+        t += 25.0
+    else:
+        ends = [_parse_date(r.get("end_date")) for r in career if r.get("end_date")]
+        if ends:
+            latest = max(ends)
+            gap = (TODAY.year - latest.year) * 12 + (TODAY.month - latest.month)
+            t += 15.0 if gap <= 6 else (6.0 if gap <= 12 else 0.0)
+            # Note: gap > 18 mo already carries −50 from integrity_penalties (no-prod-code-18mo)
+
+    # (b) Evaluation rigor: full eval dim (1.0) > partial (0.5)
+    t += ev_dims.get("evaluation", 0.0) * 20.0
+
+    # (c) Shipping at scale: confirmed production impact (scale mentions, ownership)
+    t += ev_dims.get("shipping", 0.0) * 15.0
+
+    return min(t, 60.0)
+
+
 def score_candidate_final(record: dict) -> tuple[float, dict]:
     """
     Returns (final_pre, info). Honeypots → -1e9 (forced bottom).
@@ -511,13 +545,14 @@ def score_candidate_final(record: dict) -> tuple[float, dict]:
 
     merit = 3.0 * ev_score + tp + skill_coherence + yf + nice - penalty
     core = merit * hard
+    tb = jd_tiebreak(record, ev_dims)
     bt = behavioral_term(record)
-    final_pre = core + bt
+    final_pre = core + tb + bt
 
     info = {
         "honeypot": False, "ev_score": ev_score, "ev_dims": ev_dims,
         "title_prior": tp, "skill_coherence": skill_coherence, "yoe_fit": yf,
-        "nice": nice, "penalty": penalty, "hard": hard, "behavioral": bt,
+        "nice": nice, "penalty": penalty, "hard": hard, "tiebreak": tb, "behavioral": bt,
         "merit": merit, "flags": flags, "tier_base": _baseline_tier(title),
     }
     return final_pre, info
