@@ -288,7 +288,10 @@ def load_candidates(cache_key: int = 0) -> list[dict]:
 
 @st.cache_data
 def load_flagged(cache_key: int = 0) -> list[dict]:
-    for p in (FLAGGED_OUTPUT_PATH, FLAGGED_DEMO_PATH):
+    # Prefer the demo copy (written last by extract_top100.py) over the raw
+    # output copy, so stale output/flagged.json from a previous run doesn't
+    # shadow the fresh demo/flagged.json after a dataset switch.
+    for p in (FLAGGED_DEMO_PATH, FLAGGED_OUTPUT_PATH):
         if p.exists():
             try:
                 return json.loads(p.read_text(encoding="utf-8"))
@@ -912,6 +915,9 @@ if st.session_state.get("pipeline_action") == "rerank":
     ok, err, meta_new = run_pipeline(jsonl_p)
     if ok:
         save_meta(meta_new["source"], meta_new["n_input"], meta_new["n_ranked"])
+        # Explicitly flush @st.cache_data so the next render reads fresh files.
+        load_candidates.clear()
+        load_flagged.clear()
         st.session_state["cache_key"] = st.session_state.get("cache_key", 0) + 1
         if meta_new.get("small"):
             n = meta_new["n_ranked"]
