@@ -1,0 +1,20 @@
+team_name: Viburnia
+participant_name: Vassist C V
+github_repo: https://github.com/riproar23/proofrank
+reproduce_command: python -m src.rank --candidates data/candidates.jsonl --output output/final.csv
+sandbox_link: http://localhost:8501
+methodology_summary: >
+  ProofRank ranks candidates by what their careers demonstrably show, not keyword
+  matching. A JD rubric extracts must-haves, nice-to-haves and disqualifiers. Each
+  candidate is scored on five evidence dimensions — production retrieval, vector search,
+  ranking ownership, evaluation frameworks, and shipping at scale — weighted 3x over
+  title prior, skill coherence, experience fit and a capped behavioural modifier. A
+  four-signal integrity layer (H1/H2b/H3/H6) hard-zeros impossible profiles. Fully
+  deterministic, offline, CPU-only, runs under 90s on 100k candidates. Measured +0.46
+  NDCG@10 lift over a keyword-similarity baseline on a 46-candidate independent proxy.
+compute:
+  has_network_during_ranking: false
+  uses_gpu_for_inference: false
+  peak_memory_gb: 0.003
+  runtime_seconds: 87
+ai_tools_used: "Claude (Anthropic) — code generation, architecture design, and iterative development."
