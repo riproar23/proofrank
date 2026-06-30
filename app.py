@@ -117,21 +117,20 @@ details.pr-card.manual-entry .pr-rank{ background:var(--sage-soft); color:var(--
 .pr-sum-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:.15rem; }
 .pr-title{ font-size:1.16rem; font-weight:680; color:var(--ink); }
 .pr-sub{ font-size:.97rem; color:var(--muted); }
-.pr-sum-match{ flex:0 0 auto; text-align:right; display:flex; flex-direction:column; gap:.2rem; }
-.pr-dots{ font-size:1.02rem; letter-spacing:2px; }
-.pr-dots .on{ color:var(--accent); }
-.pr-dots .off{ color:#E2D6C6; }
-.pr-mlabel{ font-size:.9rem; font-weight:640; color:var(--ink); }
+.pr-sum-verdict{
+  flex:0 0 auto; font-size:.78rem; font-weight:720; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--muted); white-space:nowrap; align-self:center;
+}
 .pr-flag-pin{ flex:0 0 auto; font-size:1.15rem; }
+.pr-avail{ display:inline-flex; align-items:center; gap:.32rem; color:var(--sage); font-weight:580; }
+.pr-avail-dot{
+  width:7px; height:7px; border-radius:50%; background:#C8BEB4;
+  display:inline-block; flex-shrink:0; vertical-align:middle;
+}
+.pr-avail-dot.active{ background:var(--sage); }
 
 /* body */
 .pr-body{ padding:.25rem .15rem 1.1rem .15rem; }
-.pr-facts{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.2rem 0 1.1rem 0; }
-.pr-chip{
-  background:#F6EFE6; border:1px solid var(--line); border-radius:999px;
-  padding:.32rem .8rem; font-size:.95rem; color:var(--ink);
-}
-.pr-chip.avail{ background:var(--sage-soft); border-color:#CFE6DD; color:#3F6F60; font-weight:600; }
 .pr-sec-h{
   font-size:.82rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
   color:var(--muted); margin:1.1rem 0 .55rem 0;
@@ -373,23 +372,36 @@ def _run_subprocess_logged(cmd: list[str], label: str, status_obj) -> tuple[int,
 
 def run_pipeline(jsonl_path: Path) -> tuple[bool, str, dict]:
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
-    with st.status("Analyzing candidates — this takes about a minute…", expanded=True) as status:
+    try:
+        with open(jsonl_path, "rb") as _f:
+            n_candidates = sum(1 for ln in _f if ln.strip())
+    except Exception:
+        n_candidates = 999
+    small = n_candidates < 100
+
+    status_label = "Analyzing candidates…" if small else "Analyzing candidates — this takes about a minute…"
+    with st.status(status_label, expanded=True) as status:
         ret, out = _run_subprocess_logged(
             [sys.executable, "-m", "src.rank",
              "--candidates", str(jsonl_path), "--output", str(OUTPUT_CSV)],
             "Step 1 of 2 — Ranking all candidates", status,
         )
         if ret != 0:
-            status.update(label="Ranker failed ❌", state="error")
-            return False, ("The ranker exited with an error. Check that the dataset file is "
-                           "a valid JSONL with the expected schema."), {}
+            # Small datasets fail the submission validator (requires 100 rows).
+            # Tolerate the non-zero exit if the ranker still wrote the CSV.
+            if small and OUTPUT_CSV.exists() and OUTPUT_CSV.stat().st_size > 0:
+                status.write("Small dataset — skipping submission validator")
+            else:
+                status.update(label="Ranker failed ❌", state="error")
+                return False, ("The ranker exited with an error. Check that the dataset file is "
+                               "a valid JSONL with the expected schema."), {}
         n_input = 0
         for line in out.splitlines():
             m = re.search(r"Scored ([\d,]+) candidates", line)
             if m:
                 n_input = int(m.group(1).replace(",", ""))
                 break
-        if "Validator: PASS" not in out:
+        if not small and "Validator: PASS" not in out:
             status.update(label="Output validation failed ❌", state="error")
             return False, ("The ranked output failed the submission validator. "
                            "The dataset may be malformed or too small."), {}
@@ -404,8 +416,8 @@ def run_pipeline(jsonl_path: Path) -> tuple[bool, str, dict]:
     try:
         n_ranked = len(json.loads(DATA_PATH.read_text(encoding="utf-8")))
     except Exception:
-        n_ranked = 100
-    return True, "", {"source": jsonl_path.name, "n_input": n_input, "n_ranked": n_ranked}
+        n_ranked = n_candidates if small else 100
+    return True, "", {"source": jsonl_path.name, "n_input": n_input, "n_ranked": n_ranked, "small": small}
 
 
 # ─── Plain-language card helpers ──────────────────────────────────────────────
@@ -660,25 +672,32 @@ def candidate_card(row: dict, open_default: bool, extra_class: str = "") -> str:
 
     rank_label = f"~#{rank}" if is_manual else f"#{rank}"
     flag_pin = '<span class="pr-flag-pin" title="Needs verifying">⚠️</span>' if flagged else ""
+
+    avail = availability_text(row)
+    loc   = html.escape((prof.get("location") or "").strip())
+    sub_parts = [f"{yoe:.0f} yrs", company]
+    if loc:
+        sub_parts.append(loc)
+    avail_html = (
+        f'<span class="pr-avail"><span class="pr-avail-dot active"></span>{html.escape(avail)}</span>'
+        if avail else ""
+    )
+    manual_tag = (
+        ' <span style="font-size:.78rem;color:var(--sage);font-weight:660;letter-spacing:.04em">'
+        'MANUAL</span>'
+        if is_manual else ""
+    )
     summary = (
         f'<summary>'
         f'<span class="pr-rank">{rank_label}</span>'
-        f'<span class="pr-sum-main"><span class="pr-title">{title}</span>'
-        f'<span class="pr-sub">{yoe:.0f} yrs experience · {company}</span></span>'
-        f'<span class="pr-sum-match"><span class="pr-dots">{dots_html(filled)}</span>'
-        f'<span class="pr-mlabel">{label}</span></span>'
+        f'<span class="pr-sum-main">'
+        f'<span class="pr-title">{title}{manual_tag}</span>'
+        f'<span class="pr-sub">{" · ".join(sub_parts)}'
+        + (f' · {avail_html}' if avail_html else '') +
+        f'</span></span>'
+        f'<span class="pr-sum-verdict">{label.upper()}</span>'
         f'{flag_pin}</summary>'
     )
-
-    chips = [f'<span class="pr-chip">💼 {title}</span>',
-             f'<span class="pr-chip">🗓 {yoe:.0f} years</span>',
-             f'<span class="pr-chip">🏢 {company}</span>']
-    avail = availability_text(row)
-    if avail:
-        chips.append(f'<span class="pr-chip avail">🟢 {avail}</span>')
-    if is_manual:
-        chips.append(f'<span class="pr-chip avail" style="background:var(--sage-soft);color:var(--sage)">✍️ Manual entry</span>')
-    facts = '<div class="pr-facts">' + "".join(chips) + '</div>'
 
     checks = ['<div class="pr-sec-h">What they\'ve actually done</div>']
     for dim, text in DONE_ITEMS:
@@ -698,7 +717,7 @@ def candidate_card(row: dict, open_default: bool, extra_class: str = "") -> str:
     return (
         f'<details class="{cls_str}"{open_attr}>'
         f'{summary}'
-        f'<div class="pr-body">{facts}{"".join(checks)}{why_good}{why_less}{flag_box}'
+        f'<div class="pr-body">{"".join(checks)}{why_good}{why_less}{flag_box}'
         f'{career_html(row)}{tech}</div></details>'
     )
 
@@ -893,11 +912,20 @@ if st.session_state.get("pipeline_action") == "rerank":
     ok, err, meta_new = run_pipeline(jsonl_p)
     if ok:
         save_meta(meta_new["source"], meta_new["n_input"], meta_new["n_ranked"])
-        st.session_state["cache_key"]        = st.session_state.get("cache_key", 0) + 1
-        st.session_state["pipeline_success"] = (
-            f"Re-analysis complete — {meta_new['n_input']:,} candidates ranked, "
-            f"top {meta_new['n_ranked']} shown below."
-        )
+        st.session_state["cache_key"] = st.session_state.get("cache_key", 0) + 1
+        if meta_new.get("small"):
+            n = meta_new["n_ranked"]
+            st.session_state["small_dataset_notice"] = (
+                f"Showing all {n} candidate{'s' if n != 1 else ''} — "
+                "full submission validation requires 100+ candidates."
+            )
+            st.session_state.pop("pipeline_success", None)
+        else:
+            st.session_state.pop("small_dataset_notice", None)
+            st.session_state["pipeline_success"] = (
+                f"Re-analysis complete — {meta_new['n_input']:,} candidates ranked, "
+                f"top {meta_new['n_ranked']} shown below."
+            )
     else:
         st.session_state["pipeline_error"] = f"❌ {err}"
     st.rerun()
@@ -906,6 +934,8 @@ if msg := st.session_state.pop("pipeline_success", None):
     st.success(msg)
 if msg := st.session_state.pop("pipeline_error", None):
     st.error(msg)
+if notice := st.session_state.get("small_dataset_notice"):
+    st.info(f"ℹ️ {notice}")
 
 # ── Load candidates ────────────────────────────────────────────────────────────
 candidates  = load_candidates(st.session_state.get("cache_key", 0))
