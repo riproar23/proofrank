@@ -52,6 +52,23 @@ set (TREC-pool style, grades 0-4). Results are in `results.md`.
 
 ---
 
+## Interactive Demo
+
+A recruiter-facing Streamlit demo is included. To launch it locally:
+
+    Launch_ProofRank.bat        # Windows (double-click or run in terminal)
+    # or
+    streamlit run app.py
+
+The demo shows:
+- Ranked shortlist with plain-language evidence for every candidate
+- Flagged profiles tab explaining why each was excluded
+- Dataset upload and re-ranking without restarting
+- Manual candidate entry scored by the real ranker
+- CSV download of the shortlist
+
+---
+
 ## Compute profile
 
 | Constraint | Value |
