@@ -6,66 +6,111 @@ by listed skills or title alone. Runs fully offline on CPU in ~56 seconds.
 
 ---
 
-## Reproduce
+## Quick start — what you need before anything else
+
+**You need Python 3.9 or newer.** Check by running this in a terminal:
+
+```bash
+python --version
+```
+
+If you see `Python 3.9.x` or higher, you're good. If not, download Python from
+https://www.python.org/downloads/ and install it first.
+
+**You need the candidate data file.** Place `candidates.jsonl` inside the `data/`
+folder in this repo. The folder already exists — just drop the file in.
+
+---
+
+## Step 1 — Install dependencies
+
+Open a terminal, navigate to this folder, and run:
 
 ```bash
 pip install -r requirements.txt
-
-python -m src.rank \
-  --candidates data/candidates.jsonl \
-  --output output/final.csv
 ```
 
-`output/final.csv` is the submission artifact (top-100, distinct non-increasing scores,
-`candidate_id,rank,score,reasoning` header).
+This installs everything the ranker and demo need. It only takes a minute. You only
+need to do this once.
 
-### Validate output
+---
+
+## Step 2 — Run the ranker
+
+```bash
+python -m src.rank --candidates data/candidates.jsonl --output output/final.csv
+```
+
+**What this does:** reads all 100,000 candidates from `data/candidates.jsonl`, scores
+each one, and writes the top 100 to `output/final.csv`. Takes about 56 seconds on a
+normal laptop CPU. No internet connection needed.
+
+**What you'll see:** a progress indicator in the terminal. When it finishes, the
+terminal returns to a prompt with no errors.
+
+**What you get:** `output/final.csv` — the submission file. It has four columns:
+`candidate_id`, `rank`, `score`, `reasoning`.
+
+---
+
+## Step 3 — Check the output is valid
 
 ```bash
 python data/validate_submission.py output/final.csv
 ```
 
-Expected: `Submission is valid.` + exit 0.
+**What you'll see if everything is correct:**
 
-### Run the demo
+```
+Submission is valid.
+```
+
+If you see anything else, something went wrong in step 2.
+
+---
+
+## Step 4 — Launch the interactive demo
+
+**On Windows — the easiest way:** double-click `Launch_ProofRank.bat`, or run it in a
+terminal:
+
+```bash
+Launch_ProofRank.bat
+```
+
+**On any platform:**
 
 ```bash
 streamlit run app.py
-# → http://localhost:8501
 ```
 
-The demo loads `demo/top100_data.json` (pre-baked, committed). No JSONL needed at
-demo runtime. To regenerate the baked file after any re-rank:
+**What happens:** a browser tab opens automatically at `http://localhost:8501` showing
+the recruiter-facing demo. If the tab doesn't open by itself, copy that URL and paste
+it into your browser.
 
-```bash
-python demo/extract_top100.py
-```
+**What the demo shows:**
+- Ranked shortlist with plain-language evidence for every candidate
+- Flagged profiles tab explaining why each was excluded
+- Dataset upload and re-ranking without restarting the app
+- Manual candidate entry scored by the real ranker
+- CSV download of the shortlist
 
-### Proxy evaluation
+> **Note:** the demo works straight away even without running step 2 — it loads a
+> pre-baked copy of the top 100 from `demo/top100_data.json` (already committed).
+> Run step 2 first if you want the demo to reflect a fresh ranking.
+
+---
+
+## Optional — run the proxy evaluation
+
+This compares the ranker's output against a 46-candidate hand-labeled set to measure
+ranking quality. You need to have completed step 2 first.
 
 ```bash
 python eval/eval.py
 ```
 
-Compares `output/baseline.csv` vs `output/final.csv` against a 46-candidate labeled
-set (TREC-pool style, grades 0-4). Results are in `results.md`.
-
----
-
-## Interactive Demo
-
-A recruiter-facing Streamlit demo is included. To launch it locally:
-
-    Launch_ProofRank.bat        # Windows (double-click or run in terminal)
-    # or
-    streamlit run app.py
-
-The demo shows:
-- Ranked shortlist with plain-language evidence for every candidate
-- Flagged profiles tab explaining why each was excluded
-- Dataset upload and re-ranking without restarting
-- Manual candidate entry scored by the real ranker
-- CSV download of the shortlist
+Results are printed to the terminal and also saved in `results.md`.
 
 ---
 
