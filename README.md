@@ -6,111 +6,286 @@ by listed skills or title alone. Runs fully offline on CPU in ~56 seconds.
 
 ---
 
-## Quick start — what you need before anything else
+## Complete beginner's guide
 
-**You need Python 3.9 or newer.** Check by running this in a terminal:
+This guide assumes you have never used a terminal before and have no coding experience.
+Follow every step in order and you will have everything running.
 
-```bash
+---
+
+### Part 1 — What is a terminal and how do I open one?
+
+A **terminal** (also called Command Prompt on Windows) is a text window where you type
+instructions for your computer. Instead of clicking buttons, you type commands.
+
+**How to open a terminal already pointed at the ProofRank folder (Windows):**
+
+1. Open **File Explorer** — the folder icon in your taskbar, or press `Windows key + E`.
+2. Navigate to wherever you downloaded or saved the **ProofRank** folder and open it.
+   You should see files like `app.py`, `requirements.txt`, and a `Launch_ProofRank.bat`
+   inside.
+3. Look at the **address bar** at the very top of the File Explorer window. It shows
+   something like `C:\Users\YourName\Downloads\ProofRank`. Click on it once — the text
+   turns blue.
+4. While that text is highlighted, type `cmd` (three letters, lowercase) and press
+   **Enter**.
+5. A black window called **Command Prompt** opens. You'll see a line ending in
+   `C:\...\ProofRank>`. This means the terminal is already inside the ProofRank folder.
+   **You don't need to cd anywhere** — it's already in the right place.
+
+> **If step 4 didn't work:** close the window and try right-clicking anywhere inside the
+> ProofRank folder (on the white background, not on a file). Look for **"Open in
+> Terminal"**, **"Open PowerShell window here"**, or **"Open command window here"** and
+> click it.
+
+> **If you already have a terminal open but it's in the wrong folder:** type `cd ` (the
+> letters c, d, and a space) then drag the ProofRank folder from File Explorer into the
+> terminal window — the path fills in automatically. Press Enter.  
+> For example: `cd C:\Users\YourName\Downloads\ProofRank`
+
+---
+
+### Part 2 — Check that Python is installed
+
+In the terminal, type the following and press **Enter**:
+
+```
 python --version
 ```
 
-If you see `Python 3.9.x` or higher, you're good. If not, download Python from
-https://www.python.org/downloads/ and install it first.
+**You should see:** `Python 3.9.x` or any higher number (3.10, 3.11, 3.12, etc.).
 
-**You need the candidate data file.** Place `candidates.jsonl` inside the `data/`
-folder in this repo. The folder already exists — just drop the file in.
+**If you see an error like `'python' is not recognized`:**
+1. Go to https://www.python.org/downloads/ and click the big yellow **Download Python**
+   button.
+2. Run the installer. On the very first screen, tick the checkbox that says
+   **"Add Python to PATH"** before clicking anything else. This is easy to miss.
+3. Click **Install Now** and wait for it to finish.
+4. Close your terminal window and open a new one (go back to Part 1 step 4).
+5. Type `python --version` again — it should now show a version number.
 
 ---
 
-## Step 1 — Install dependencies
+### Part 3 — Put the data file in the right place
 
-Open a terminal, navigate to this folder, and run:
+You need a file called **`candidates.jsonl`**. This is the candidate data file provided
+for the challenge.
 
-```bash
+**What is a `.jsonl` file?** It's a plain text file where every line is one candidate's
+data. You don't need to open or edit it — just place it in the right folder.
+
+**Where to put it:**
+
+Inside the ProofRank folder, there is a folder called **`data`**. Put `candidates.jsonl`
+inside that `data` folder.
+
+If you open File Explorer and look inside ProofRank, the result should look like this:
+
+```
+ProofRank\
+├── data\
+│     └── candidates.jsonl    ← the file goes here
+├── app.py
+├── requirements.txt
+├── Launch_ProofRank.bat
+└── ... (other files)
+```
+
+**How to put it there:** open the `data` folder in File Explorer, then copy and paste
+(or drag and drop) `candidates.jsonl` into it.
+
+**If you're placing the file from the terminal instead of File Explorer:**
+
+```
+copy "C:\path\to\wherever\candidates.jsonl" "C:\path\to\ProofRank\data\candidates.jsonl"
+```
+
+Replace `C:\path\to\wherever\` with the actual folder where `candidates.jsonl` currently
+lives, and `C:\path\to\ProofRank\` with where you saved ProofRank.
+
+---
+
+### Part 4 — Install dependencies (first time only)
+
+In the terminal, type this and press **Enter**:
+
+```
 pip install -r requirements.txt
 ```
 
-This installs everything the ranker and demo need. It only takes a minute. You only
-need to do this once.
+**What this does:** downloads and installs all the code libraries that ProofRank needs.
+Think of it like installing apps — but automatic.
+
+**What you'll see:** a lot of text scrolling past with library names and progress bars.
+This is normal. It may take 1–5 minutes depending on your internet speed.
+
+**When it's done:** the scrolling stops and you see the `>` prompt again with no red
+error messages.
+
+**You only ever need to do this once.** Next time you use ProofRank, skip straight to
+Part 5.
 
 ---
 
-## Step 2 — Run the ranker
+### Part 5 — Run the ranker (terminal method)
 
-```bash
+In the terminal, type this exactly and press **Enter**:
+
+```
 python -m src.rank --candidates data/candidates.jsonl --output output/final.csv
 ```
 
-**What this does:** reads all 100,000 candidates from `data/candidates.jsonl`, scores
-each one, and writes the top 100 to `output/final.csv`. Takes about 56 seconds on a
-normal laptop CPU. No internet connection needed.
+**What this does:** reads every candidate from `candidates.jsonl`, scores each one
+against the job description, and saves the top 100 ranked candidates to a new file.
 
-**What you'll see:** a progress indicator in the terminal. When it finishes, the
-terminal returns to a prompt with no errors.
+**What you'll see:** progress messages in the terminal. It takes about 56 seconds. Your
+laptop fan may spin up — that's fine, the CPU is working.
 
-**What you get:** `output/final.csv` — the submission file. It has four columns:
-`candidate_id`, `rank`, `score`, `reasoning`.
+**When it's done:** the terminal returns to the `>` prompt. No red error text means
+success.
+
+**What you get:** a file called `final.csv` inside the `output` folder inside ProofRank.
+Full path: `ProofRank\output\final.csv`. This is the ranked shortlist and submission file.
 
 ---
 
-## Step 3 — Check the output is valid
+### Part 6 — Check the output is correct
 
-```bash
+```
 python data/validate_submission.py output/final.csv
 ```
 
-**What you'll see if everything is correct:**
+**If everything worked, you'll see:**
 
 ```
 Submission is valid.
 ```
 
-If you see anything else, something went wrong in step 2.
+If you see any other message or an error, re-run Part 5.
 
 ---
 
-## Step 4 — Launch the interactive demo
+### Part 7 — Launch the interactive demo (the visual app)
 
-**On Windows — the easiest way:** double-click `Launch_ProofRank.bat`, or run it in a
-terminal:
+The demo is a browser-based app that lets you explore the ranked candidates visually —
+no terminal commands needed once it's running.
 
-```bash
-Launch_ProofRank.bat
+#### Option A — Double-click (easiest, Windows only)
+
+Find **`Launch_ProofRank.bat`** in the ProofRank folder and **double-click it**. A
+terminal window opens briefly, then your browser loads the demo automatically.
+
+#### Option B — From the terminal
+
 ```
-
-**On any platform:**
-
-```bash
 streamlit run app.py
 ```
 
-**What happens:** a browser tab opens automatically at `http://localhost:8501` showing
-the recruiter-facing demo. If the tab doesn't open by itself, copy that URL and paste
-it into your browser.
+**What happens:**
+1. The terminal prints a few lines of startup text. Wait 5–10 seconds.
+2. Your default browser opens automatically at `http://localhost:8501`.
+3. If the browser doesn't open on its own, open Chrome, Edge, Firefox, or any browser
+   yourself and type `http://localhost:8501` in the address bar, then press Enter.
 
-**What the demo shows:**
-- Ranked shortlist with plain-language evidence for every candidate
-- Flagged profiles tab explaining why each was excluded
-- Dataset upload and re-ranking without restarting the app
-- Manual candidate entry scored by the real ranker
-- CSV download of the shortlist
+**To stop the demo:** click on the terminal window that's running it and press
+**Ctrl + C** (hold Ctrl and press C). The app will shut down.
 
-> **Note:** the demo works straight away even without running step 2 — it loads a
-> pre-baked copy of the top 100 from `demo/top100_data.json` (already committed).
-> Run step 2 first if you want the demo to reflect a fresh ranking.
+**The demo works immediately even without running Parts 5–6.** It comes with a
+pre-loaded snapshot of the top 100 candidates. Run Parts 5–6 first only if you want a
+fresh ranking from your own data file.
 
 ---
 
-## Optional — run the proxy evaluation
+### Part 8 — Using the demo (full guide to every feature)
 
-This compares the ranker's output against a 46-candidate hand-labeled set to measure
-ranking quality. You need to have completed step 2 first.
+Once the demo is open in your browser, here's everything you can do:
 
-```bash
+#### The sidebar (left panel)
+
+The left panel controls what's displayed and lets you upload data.
+
+**Show filter (All / Strong matches / Flagged):**
+Three radio buttons at the top. "All" shows every ranked candidate. "Strong matches"
+filters to only the top candidates the ranker is most confident about. "Flagged" isn't
+a separate tab here — use the Flagged Profiles tab in the main area instead.
+
+**Only show strong matches checkbox:**
+Tick this to instantly hide weaker candidates and see only the top tier.
+
+**Showing X of Y candidates:**
+Tells you how many candidates are currently visible after your filters.
+
+**Download shortlist (CSV):**
+Click this button to download the ranked shortlist as a spreadsheet file you can open
+in Excel or Google Sheets. It contains the candidate ID, rank, score, and the
+plain-language reasoning for each person.
+
+**Data section:**
+Shows which dataset is currently loaded and how large it is (e.g. `candidates.jsonl
+(465 MB)`). Below it is the Re-rank button.
+
+**Re-rank current dataset:**
+Click this to re-run the full ranking pipeline on whichever dataset is currently
+active. The app updates automatically when it finishes — no restart needed.
+
+**Upload a new dataset (expandable section):**
+Click the arrow next to "Upload a new dataset" to expand it. You can drag and drop
+one or more `.jsonl` or `.jsonl.gz` files. Each file shows its validation status and
+two buttons:
+- **Save to data/** — saves the file to the `data` folder without ranking it yet.
+- **Save & Rank** — saves the file and immediately runs the ranker on it. The results
+  appear in the main view when done.
+
+**Manage datasets (expandable section):**
+Click the arrow to see all `.jsonl` files in your `data` folder listed here.
+- **Active** label — shown next to whichever dataset is currently being displayed.
+- **Use this** button — switches to that dataset and re-ranks it immediately.
+- **✕ button** — removes that dataset file from the `data` folder. The default
+  `candidates.jsonl` cannot be removed.
+
+**Add a candidate manually (expandable section):**
+Fill in a candidate's details (name, title, company, years of experience, skills, etc.)
+and click **Score this candidate**. The ranker scores them using the exact same logic as
+the full pipeline and adds them to the shortlist. Useful for testing a specific person.
+
+---
+
+#### The main area (right side)
+
+**Candidate Shortlist tab:**
+Shows every ranked candidate as a card. Each card has:
+- The rank number (#1, #2, etc.) on the left.
+- The candidate's title, years of experience, company, location, and availability.
+- The verdict (STRONG MATCH / GOOD FIT / BORDERLINE / WEAK) in the top-right corner.
+- Click anywhere on the card to expand it and see the full evidence breakdown —
+  what specific career history and skills drove the score, what the ranker liked, and
+  what held them back.
+
+**Flagged Profiles tab:**
+Candidates the ranker excluded because they triggered integrity checks (fake-looking
+profiles, impossible timelines, inflated experience). Each flagged card shows exactly
+which check failed and why.
+
+**How this works (expandable):**
+Click "ℹ️ How this works" to read a plain-language explanation of the scoring model
+without needing to look at any code.
+
+**Status bar:**
+Below the title, shows the last time the ranking was run, which data file it used, and
+how many candidates were processed (e.g. `100,000 candidates → top 100`).
+
+---
+
+### Optional — run the proxy evaluation
+
+Only needed if you want to measure ranking quality. Requires Part 5 to be done first.
+
+```
 python eval/eval.py
 ```
 
-Results are printed to the terminal and also saved in `results.md`.
+Compares the ranker's output against a 46-candidate hand-labeled set and prints
+NDCG, MAP, and Precision scores. Results are also written to `results.md`.
 
 ---
 
