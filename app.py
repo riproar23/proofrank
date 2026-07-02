@@ -24,6 +24,10 @@ import sys
 import time
 from pathlib import Path
 
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
 import streamlit as st
 
 # ─── Page config ──────────────────────────────────────────────────────────────
@@ -796,6 +800,117 @@ def make_csv(rows: list[dict]) -> str:
     return buf.getvalue()
 
 
+def make_xlsx(rows: list[dict]) -> bytes:
+    COLUMNS = [
+        ("rank",            "Rank",              6),
+        ("match",           "Match",             16),
+        ("candidate_id",    "Candidate ID",      18),
+        ("title",           "Title",             28),
+        ("years_experience","Yrs Exp",           8),
+        ("current_company", "Current Company",   22),
+        ("built_ranking",   "Built Ranking",     10),
+        ("built_retrieval", "Built Retrieval",   10),
+        ("vector_search",   "Vector Search",     10),
+        ("measures_quality","Measures Quality",  10),
+        ("shipped_at_scale","Shipped at Scale",  10),
+        ("needs_verifying", "Needs Verifying",   10),
+        ("why_this_person", "Why This Person",   40),
+        ("why_not_higher",  "Why Not Higher",    40),
+        ("raw_score",       "Raw Score",         10),
+        ("evidence_score",  "Evidence Score",    10),
+    ]
+
+    # Colours
+    HDR_FILL  = PatternFill("solid", fgColor="1B4332")
+    HDR_FONT  = Font(name="Calibri", bold=True, size=11, color="FFFFFF")
+    HDR_ALIGN = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    ODD_FILL  = PatternFill("solid", fgColor="FFFFFF")
+    EVEN_FILL = PatternFill("solid", fgColor="F0FFF4")
+    DATA_FONT = Font(name="Calibri", size=10, color="1A1A2E")
+
+    THIN   = Side(style="thin")
+    BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+
+    CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    LEFT   = Alignment(horizontal="left",   vertical="center", wrap_text=True)
+    RIGHT  = Alignment(horizontal="right",  vertical="center", wrap_text=True)
+
+    _ALIGN = {
+        "rank":             CENTER,
+        "match":            CENTER,
+        "candidate_id":     CENTER,
+        "years_experience": RIGHT,
+        "raw_score":        RIGHT,
+        "evidence_score":   RIGHT,
+        "built_ranking":    CENTER,
+        "built_retrieval":  CENTER,
+        "vector_search":    CENTER,
+        "measures_quality": CENTER,
+        "shipped_at_scale": CENTER,
+        "needs_verifying":  CENTER,
+        "why_this_person":  LEFT,
+        "why_not_higher":   LEFT,
+        "title":            LEFT,
+        "current_company":  LEFT,
+    }
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "ProofRank Shortlist"
+
+    # Header row
+    for col_idx, (key, header, width) in enumerate(COLUMNS, start=1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.font      = HDR_FONT
+        cell.fill      = HDR_FILL
+        cell.alignment = HDR_ALIGN
+        cell.border    = BORDER
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+    ws.row_dimensions[1].height = 32
+
+    # Data rows
+    for row_idx, r in enumerate(rows, start=2):
+        prof  = r.get("profile", {})
+        label, _ = match_level(r["rank"])
+        yoe   = float(prof.get("years_of_experience", 0) or 0)
+
+        values = {
+            "rank":             r["rank"],
+            "match":            label,
+            "candidate_id":     str(r["candidate_id"]),
+            "title":            prof.get("current_title", ""),
+            "years_experience": round(yoe, 1),
+            "current_company":  current_company(r),
+            "built_ranking":    "yes" if has(r, "ranking")    else "no",
+            "built_retrieval":  "yes" if has(r, "retrieval")  else "no",
+            "vector_search":    "yes" if has(r, "vector")     else "no",
+            "measures_quality": "yes" if has(r, "evaluation") else "no",
+            "shipped_at_scale": "yes" if has(r, "shipping")   else "no",
+            "needs_verifying":  "yes" if r.get("flags")       else "no",
+            "why_this_person":  why_person_plain(r),
+            "why_not_higher":   why_not_higher_plain(r),
+            "raw_score":        round(float(r.get("score", 0)), 2),
+            "evidence_score":   int(r.get("ev_score", 0)),
+        }
+
+        fill = ODD_FILL if (row_idx % 2 == 0) else EVEN_FILL
+        for col_idx, (key, _header, _w) in enumerate(COLUMNS, start=1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=values[key])
+            cell.font      = DATA_FONT
+            cell.fill      = fill
+            cell.alignment = _ALIGN.get(key, LEFT)
+            cell.border    = BORDER
+        ws.row_dimensions[row_idx].height = 60
+
+    ws.freeze_panes = "A2"
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf.read()
+
+
 # ─── Manual candidate entry helpers ──────────────────────────────────────────
 
 def _parse_ym(s: str) -> tuple[int, int] | None:
@@ -986,10 +1101,10 @@ with st.sidebar:
 
     if filtered:
         st.download_button(
-            "⬇  Download shortlist (CSV)",
-            data=make_csv(filtered),
-            file_name="candidate_shortlist.csv",
-            mime="text/csv",
+            "⬇  Download shortlist (XLSX)",
+            data=make_xlsx(filtered),
+            file_name="candidate_shortlist.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
         )
 
